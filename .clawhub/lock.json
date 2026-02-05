@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "skills": {
+    "himalaya": {
+      "version": "1.0.0",
+      "installedAt": 1770263111680
+    },
+    "summarize": {
+      "version": "1.0.0",
+      "installedAt": 1770263113518
+    },
+    "things-mac": {
+      "version": "1.0.0",
+      "installedAt": 1770263115283
+    },
+    "sag": {
+      "version": "1.0.0",
+      "installedAt": 1770263116840
+    },
+    "session-logs": {
+      "version": "1.0.0",
+      "installedAt": 1770263123757
+    },
+    "apple-notes": {
+      "version": "1.0.0",
+      "installedAt": 1770263125520
+    },
+    "gog": {
+      "version": "1.0.0",
+      "installedAt": 1770263126951
+    },
+    "bird": {
+      "version": "1.0.0",
+      "installedAt": 1770263128417
+    },
+    "obsidian": {
+      "version": "1.0.0",
+      "installedAt": 1770263133887
+    },
+    "apple-reminders": {
+      "version": "1.0.0",
+      "installedAt": 1770263135774
+    },
+    "local-places": {
+      "version": "1.0.0",
+      "installedAt": 1770263137763
+    }
+  }
+}
