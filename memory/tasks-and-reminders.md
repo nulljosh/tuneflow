@@ -10,7 +10,7 @@ Last synced: 2026-02-05 11:46 PST
 - [ ] Logitech MX Master Mouse
 
 ### To Do
-- [ ] Find glasses → ⏳ Waiting on Air Canada response (contacted them)
+- [x] Find glasses → ✅ Found them!
 - [ ] ADHD medication? (research/get prescription?)
 - [ ] PWD and DTC forms (handle tomorrow)
 
