@@ -16,7 +16,7 @@ Last synced: 2026-02-05 11:46 PST
 - [ ] Build custom C compiler (multi-week project - start later)
 
 ### Events
-- [ ] Steven Page @ Hard Rock Cafe Coquitlam - **March 12, 2026** ⚠️ **VERIFY DATE** (couldn't confirm online)
+- [ ] Steven Page @ Hard Rock Cafe Coquitlam, BC - **March 13, 2026** ⚠️ **VERIFY DATE** (user thinks it's the 13th, not 12th)
 
 ## Status Tracking
 
