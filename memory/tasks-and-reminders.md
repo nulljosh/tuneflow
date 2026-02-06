@@ -13,9 +13,10 @@ Last synced: 2026-02-05 11:46 PST
 - [x] Find glasses → ✅ Found them!
 - [ ] ADHD medication? (research/get prescription?)
 - [ ] PWD and DTC forms (handle tomorrow)
+- [ ] Build custom C compiler (multi-week project - start later)
 
 ### Events
-- [ ] Steven Page @ Hard Rock Cafe Coquitlam - **March 12, 2026** (verify date)
+- [ ] Steven Page @ Hard Rock Cafe Coquitlam - **March 12, 2026** ⚠️ **VERIFY DATE** (couldn't confirm online)
 
 ## Status Tracking
 
