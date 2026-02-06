@@ -14,6 +14,9 @@ Last synced: 2026-02-05 11:46 PST
 - [ ] ADHD medication? (research/get prescription?)
 - [ ] PWD and DTC forms (handle tomorrow)
 
+### Events
+- [ ] Steven Page @ Hard Rock Cafe Coquitlam - **March 12, 2026** (verify date)
+
 ## Status Tracking
 
 When you tell me you've handled something, I'll mark it ✅ and stop reminding you.
