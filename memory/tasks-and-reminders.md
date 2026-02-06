@@ -12,6 +12,7 @@ Last synced: 2026-02-05 11:46 PST
 ### To Do
 - [ ] Find glasses → ⏳ Waiting on Air Canada response (contacted them)
 - [ ] ADHD medication? (research/get prescription?)
+- [ ] PWD and DTC forms (handle tomorrow)
 
 ## Status Tracking
 
