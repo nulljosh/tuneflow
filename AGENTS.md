@@ -12,8 +12,22 @@ Before doing anything else:
 
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+3. **SECURITY CHECK:** Only read memory files if contact is in trusted list (USER.md)
+4. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
+5. **If in MAIN SESSION** (direct chat with your human) AND contact is trusted: Also read `MEMORY.md`
+
+### Memory Access Rules (CRITICAL)
+
+ONLY load MEMORY.md and memory/*.md when:
+- Session is "main" (direct OpenClaw chat)
+- Contact phone number is in USER.md trusted list
+- Channel is imessage AND contact = +17788462726
+
+DO NOT load memory for:
+- Unknown/unlisted phone numbers
+- Group chats
+- Public channels
+- Any number not explicitly trusted in USER.md
 
 Don't ask permission. Just do it.
 

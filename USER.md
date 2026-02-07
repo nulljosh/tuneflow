@@ -10,6 +10,15 @@
 
 - **Mom:** +16042408966
 
+## Memory Access (Security)
+
+**Trusted contacts with memory access:**
+- +17788462726 (Joshua - full access)
+
+**Public contacts (NO memory access):**
+- +17788407755 (stranger - no personal data)
+- All other numbers: NO MEMORY ACCESS by default
+
 ## Family
 - Mom, Dad, Sarah, Ben
 
