@@ -1,6 +1,6 @@
 # Tasks & Reminders Tracker
 
-Last synced: 2026-02-05 11:46 PST
+Last synced: 2026-02-07 06:40 PST
 
 ## Active Reminders (from Apple Reminders)
 
@@ -12,11 +12,19 @@ Last synced: 2026-02-05 11:46 PST
 ### To Do
 - [x] Find glasses → ✅ Found them!
 - [ ] ADHD medication? (research/get prescription?)
-- [ ] PWD and DTC forms (handle tomorrow)
+- [ ] PWD and DTC forms → **WAITING ON DOCTORS** (2026-02-06)
+  - ✅ Called ombudsperson 1-800-567-3247
+  - Doctor appointment in ~1 month (early March 2026)
+  - Then can get forms faxed again
+  - 8 months of runaround - escalated properly
 - [ ] Build custom C compiler (multi-week project - start later)
 
+### Urgent/Daily
+- [ ] **Pay phone bill** ⚠️ (data working but bill overdue)
+- [ ] **Call VISA** ⚠️ (daily reminder until done)
+
 ### Events
-- [ ] Steven Page @ Hard Rock Cafe Coquitlam, BC - **March 13, 2026** ⚠️ **VERIFY DATE** (user thinks it's the 13th, not 12th)
+- [ ] Steven Page @ Hard Rock Cafe Coquitlam, BC - **March 13, 2026** ✅ (date verified)
 
 ## Status Tracking
 

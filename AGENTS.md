@@ -18,16 +18,33 @@ Before doing anything else:
 
 ### Memory Access Rules (CRITICAL)
 
-ONLY load MEMORY.md and memory/*.md when:
-- Session is "main" (direct OpenClaw chat)
-- Contact phone number is in USER.md trusted list
-- Channel is imessage AND contact = +17788462726
+**Per-Contact Memory System:**
 
-DO NOT load memory for:
+1. Extract phone number from session
+2. Check `memory/contacts/{phone}/MEMORY.md`
+3. If exists, load that contact's memory
+4. If not exists, create new directory for first-time contacts
+
+**Main MEMORY.md:** ONLY for Joshua (+17788462726)
+- Full system access
+- All projects, preferences, etc.
+
+**Contact-specific memory:** `memory/contacts/{phone}/MEMORY.md`
+- Isolated per number
+- Safe for strangers (they only see their own context)
+- No cross-contamination
+
+**Security:**
+- Main MEMORY.md: Joshua only (+17788462726)
+- Contact memory: Per-number isolation
+- Unknown numbers: Create sandboxed memory/contacts/{phone}/ on first contact
+- Group chats: Use channel ID instead of phone number
+
+DO NOT load main MEMORY.md for:
 - Unknown/unlisted phone numbers
 - Group chats
 - Public channels
-- Any number not explicitly trusted in USER.md
+- Any number except +17788462726
 
 Don't ask permission. Just do it.
 
