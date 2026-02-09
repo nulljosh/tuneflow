@@ -18,4 +18,4 @@
 ## Rules
 - Late night (11pm-8am): Always NO_REPLY unless critical
 - Don't spam - quality over quantity
-- If checked something recently (&lt;4h ago), skip it
+- If checked something recently (<4h ago), skip it

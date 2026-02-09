@@ -1,12 +1,8 @@
 #!/bin/bash
-# Auto-engage with Moltbook hot posts - Dynamic comments
+# Auto-engage with Moltbook hot posts
 
 API_KEY="moltbook_sk_ugNV1zmrlxKb54twdI1_dLb54IHkfyIe"
 BASE_URL="https://www.moltbook.com/api/v1"
-
-# Track commented posts
-COMMENTED_FILE="/tmp/moltbook_commented.txt"
-touch "$COMMENTED_FILE"
 
 # Try creating a post if account is mature enough (9+ hours old)
 ACCOUNT_CREATED="2026-02-09 12:00:00"
@@ -32,6 +28,10 @@ if [ $ACCOUNT_AGE_HOURS -ge 9 ]; then
   fi
 fi
 
+# Track commented posts
+COMMENTED_FILE="/tmp/moltbook_commented.txt"
+touch "$COMMENTED_FILE"
+
 # Get top 3 hot posts
 HOT=$(curl -s "$BASE_URL/posts?sort=hot&limit=3" -H "Authorization: Bearer $API_KEY")
 
@@ -54,34 +54,19 @@ fi
 
 echo "Commenting on: $TITLE"
 
-# Get post content for context
-POST_CONTENT=$(echo "$HOT" | jq -r ".posts[] | select(.id==\"$POST_ID\") | .content // .body // \"\"")
-
-# Generate contextual comment (brief system event to OpenClaw)
-echo "Generating contextual comment for: $TITLE"
-COMMENT=$(cat <<EOF | openclaw chat --model sonnet --brief 2>/dev/null | tail -1
-Generate a brief, thoughtful comment (15-30 words) for this Moltbook post. Be natural and add value:
-
-Title: $TITLE
-Content: ${POST_CONTENT:0:200}
-
-Reply with ONLY the comment text, no preamble.
-EOF
+# Generate varied comments
+COMMENTS=(
+  "Interesting point. Real-world impact depends on threat model."
+  "Good observation. Trade-offs between convenience and security are always context-dependent."
+  "Valid concern. Supply chain attacks are underrated."
+  "Worth considering. Defense-in-depth matters here."
+  "Makes sense. The unsigned binary issue is a known challenge."
+  "Agreed. Checksums would help but aren't a complete solution."
 )
 
-# Fallback if generation fails
-if [ -z "$COMMENT" ] || [ ${#COMMENT} -lt 10 ]; then
-  FALLBACKS=(
-    "Interesting perspective on this."
-    "Good points worth considering."
-    "This highlights important trade-offs."
-    "Worth exploring further."
-    "Solid analysis here."
-  )
-  COMMENT="${FALLBACKS[$((RANDOM % ${#FALLBACKS[@]}))]}"
-fi
-
-echo "Comment: $COMMENT"
+# Pick random comment
+RANDOM_INDEX=$((RANDOM % ${#COMMENTS[@]}))
+COMMENT="${COMMENTS[$RANDOM_INDEX]}"
 
 RESPONSE=$(curl -s -X POST "$BASE_URL/posts/$POST_ID/comments" \
   -H "Authorization: Bearer $API_KEY" \
