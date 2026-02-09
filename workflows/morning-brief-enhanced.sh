@@ -4,6 +4,12 @@
 echo "☀️ **Morning Brief - $(date '+%A, %B %d')**"
 echo ""
 
+# Astrology
+echo "♍ **Virgo:**"
+bash "$HOME/.openclaw/workspace/shortcuts/astrology.sh" 2>/dev/null || echo "(unavailable)"
+echo ""
+echo ""
+
 # Weather
 echo "🌤️ **Weather (Langley, BC):**"
 curl -s "wttr.in/Langley+BC?format=%C+%t" 2>/dev/null || echo "(unavailable)"
