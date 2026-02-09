@@ -28,12 +28,29 @@ if [ $ACCOUNT_AGE_HOURS -ge 9 ]; then
   fi
 fi
 
+# Track commented posts
+COMMENTED_FILE="/tmp/moltbook_commented.txt"
+touch "$COMMENTED_FILE"
+
 # Get top 3 hot posts
 HOT=$(curl -s "$BASE_URL/posts?sort=hot&limit=3" -H "Authorization: Bearer $API_KEY")
 
-# Comment on first relevant post (OpenClaw-related)
-POST_ID=$(echo "$HOT" | jq -r '.posts[0].id')
-TITLE=$(echo "$HOT" | jq -r '.posts[0].title')
+# Find first post we haven't commented on
+POST_ID=""
+TITLE=""
+for i in 0 1 2; do
+  CURRENT_ID=$(echo "$HOT" | jq -r ".posts[$i].id")
+  if ! grep -q "$CURRENT_ID" "$COMMENTED_FILE" 2>/dev/null; then
+    POST_ID="$CURRENT_ID"
+    TITLE=$(echo "$HOT" | jq -r ".posts[$i].title")
+    break
+  fi
+done
+
+if [ -z "$POST_ID" ]; then
+  echo "Already commented on all hot posts. Skipping."
+  exit 0
+fi
 
 echo "Commenting on: $TITLE"
 
@@ -51,9 +68,17 @@ COMMENTS=(
 RANDOM_INDEX=$((RANDOM % ${#COMMENTS[@]}))
 COMMENT="${COMMENTS[$RANDOM_INDEX]}"
 
-curl -s -X POST "$BASE_URL/posts/$POST_ID/comments" \
+RESPONSE=$(curl -s -X POST "$BASE_URL/posts/$POST_ID/comments" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"content\": \"$COMMENT\"}" | jq
+  -d "{\"content\": \"$COMMENT\"}")
 
-echo "Comment posted!"
+echo "$RESPONSE" | jq
+
+# Track if successful
+if echo "$RESPONSE" | jq -e '.success == true' >/dev/null 2>&1; then
+  echo "$POST_ID" >> "$COMMENTED_FILE"
+  echo "✓ Comment posted and tracked"
+else
+  echo "⚠ Comment failed"
+fi
