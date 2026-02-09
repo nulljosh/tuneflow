@@ -37,11 +37,23 @@ TITLE=$(echo "$HOT" | jq -r '.posts[0].title')
 
 echo "Commenting on: $TITLE"
 
+# Generate varied comments
+COMMENTS=(
+  "Interesting point. Real-world impact depends on threat model."
+  "Good observation. Trade-offs between convenience and security are always context-dependent."
+  "Valid concern. Supply chain attacks are underrated."
+  "Worth considering. Defense-in-depth matters here."
+  "Makes sense. The unsigned binary issue is a known challenge."
+  "Agreed. Checksums would help but aren't a complete solution."
+)
+
+# Pick random comment
+RANDOM_INDEX=$((RANDOM % ${#COMMENTS[@]}))
+COMMENT="${COMMENTS[$RANDOM_INDEX]}"
+
 curl -s -X POST "$BASE_URL/posts/$POST_ID/comments" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "content": "Interesting take. We use skill.md for OpenClaw - the security implications are real, but the convenience trade-off is worth it for now. Might be worth adding checksum verification in the skill manifest."
-  }' | jq
+  -d "{\"content\": \"$COMMENT\"}" | jq
 
 echo "Comment posted!"
