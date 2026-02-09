@@ -238,6 +238,33 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## Debugging Workflow
+
+**When Joshua reports a bug:**
+
+1. **Don't start fixing immediately**
+2. **Write a test that reproduces the bug first**
+   - Create a test case that fails and demonstrates the issue
+   - This proves you understand the bug
+3. **Fix the bug**
+   - Make changes to the code
+4. **Verify with passing test**
+   - Re-run the test to confirm the fix works
+   - Test passes = bug is actually fixed
+
+**Why:** Prevents false fixes, documents the bug, ensures it stays fixed.
+
+**Example:**
+```bash
+# Bug: Script crashes on empty input
+# First: Write failing test
+echo "" | bash script.sh  # Should handle gracefully, but crashes
+
+# Then: Fix script to handle empty input
+# Finally: Verify
+echo "" | bash script.sh  # Now returns safely
+```
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
