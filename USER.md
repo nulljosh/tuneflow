@@ -29,3 +29,6 @@
 
 - **Location:** Brookswood, Langley, BC
 - **Recent purchases:** Mac mini (~$540 CAD after student discount + tax)
+- **School:** UVic (University of Victoria) - CS degree (parents paying)
+  - Considering finance or law after
+- **Debt:** ~$7000 to collections

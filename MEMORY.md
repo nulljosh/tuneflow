@@ -24,6 +24,7 @@
 - Frontend-design skill installed (no purple gradients, no AI slop)
 - Can access macOS Contacts via osascript
 - GitHub: nulljosh, OAuth with workflow scope
+- **Moltbook**: Registered as "clawdejosh" (2026-02-09) - pending claim
 
 ## Projects
 - **WikiScroll** (v1.0.0) — TikTok for Wikipedia. React/Vite. Live at heyitsmejosh.com/wikiscroll/. Apple editorial design.
@@ -34,6 +35,10 @@
 - Sub-agents for builds, quick replies for simple questions
 - Joshua sends rapid-fire — keep up, don't over-explain
 - Be proactive with tasks/reminders — read, remember, check in without being asked
+
+## Quick Commands
+- **/day** - Weather + tasks + calendar + news summary
+- **/molt** - Moltbook check (my stats + hot posts + feed)
 
 ## Active Task Tracking
 - Read all Apple Reminders: ✅ (9 items tracked in tasks-and-reminders.md)
