@@ -1,0 +1,117 @@
+#!/bin/bash
+# send-video: Download video → extract key frames → analyze with qwen → send via iMessage
+# Supports: direct URLs (mp4/mov/webm) and YouTube/social links via yt-dlp
+# Target: <2 min per video
+
+URL="$1"
+RECIPIENT="${2:-+17788462726}"
+TEXT="${3:-}"
+
+[ -z "$URL" ] && echo "Usage: send-video <url> [recipient] [text]" && exit 1
+
+TIMESTAMP=$(date +%s%N)
+WORKDIR="/tmp/send_video_${TIMESTAMP}"
+mkdir -p "$WORKDIR"
+trap "rm -rf '$WORKDIR'" EXIT
+
+VIDEO="$WORKDIR/video.mp4"
+THUMB="$WORKDIR/thumb.jpg"
+FRAMES_DIR="$WORKDIR/frames"
+mkdir -p "$FRAMES_DIR"
+
+# 1. Download video
+echo "⬇️  Downloading: $URL"
+
+# Check if it's a local file
+if [ -f "$URL" ]; then
+  cp "$URL" "$VIDEO"
+elif echo "$URL" | grep -qiE '^file://' ; then
+  cp "${URL#file://}" "$VIDEO"
+# Check if it's a direct video file or needs yt-dlp
+elif echo "$URL" | grep -qiE '\.(mp4|mov|webm|avi|mkv)(\?|$)'; then
+  # Direct download
+  if ! curl -s -L --max-time 120 "$URL" -o "$VIDEO" 2>&1; then
+    echo "❌ Download failed"
+    exit 1
+  fi
+else
+  # Use yt-dlp for YouTube, Twitter, etc.
+  if ! yt-dlp -q --no-warnings -f "mp4[height<=720]/best[height<=720]/mp4/best" \
+    --max-filesize 100M -o "$VIDEO" "$URL" 2>&1; then
+    echo "❌ yt-dlp download failed"
+    exit 1
+  fi
+fi  # closes yt-dlp block
+
+[ ! -f "$VIDEO" ] && echo "❌ Video file not found" && exit 1
+VSIZE=$(stat -f%z "$VIDEO" 2>/dev/null || stat -c%s "$VIDEO" 2>/dev/null)
+echo "✓ Downloaded: $(echo "scale=1; $VSIZE/1048576" | bc) MB"
+
+# 2. Get video duration
+DURATION=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 "$VIDEO" 2>/dev/null | cut -d. -f1)
+DURATION=${DURATION:-10}
+echo "✓ Duration: ${DURATION}s"
+
+# 3. Extract key frames (first frame + evenly spaced samples, max 4)
+echo "🎞️  Extracting key frames..."
+
+if [ "$DURATION" -le 5 ]; then
+  # Short video: just grab frame at 0s and middle
+  ffmpeg -y -v quiet -ss 0 -i "$VIDEO" -frames:v 1 -q:v 2 "$FRAMES_DIR/f01.jpg"
+  ffmpeg -y -v quiet -ss $((DURATION/2)) -i "$VIDEO" -frames:v 1 -q:v 2 "$FRAMES_DIR/f02.jpg"
+else
+  # Longer: grab 4 evenly spaced frames
+  INTERVAL=$((DURATION / 5))
+  for i in 1 2 3 4; do
+    TS=$((INTERVAL * i))
+    ffmpeg -y -v quiet -ss "$TS" -i "$VIDEO" -frames:v 1 -q:v 2 "$FRAMES_DIR/f$(printf '%02d' $i).jpg" &
+  done
+  wait
+fi
+
+# Also grab a nice thumbnail (first frame)
+ffmpeg -y -v quiet -ss 1 -i "$VIDEO" -frames:v 1 -q:v 2 "$THUMB"
+
+FRAME_COUNT=$(ls "$FRAMES_DIR"/*.jpg 2>/dev/null | wc -l | tr -d ' ')
+echo "✓ Extracted $FRAME_COUNT frames"
+
+# 4. Create a composite image (montage of key frames)
+COMPOSITE="$WORKDIR/composite.jpg"
+if [ "$FRAME_COUNT" -gt 1 ] && command -v montage &>/dev/null; then
+  montage "$FRAMES_DIR"/*.jpg -tile 2x2 -geometry 640x360+2+2 -quality 85 "$COMPOSITE" 2>/dev/null
+elif [ "$FRAME_COUNT" -gt 1 ]; then
+  # Use ffmpeg to create a grid
+  FRAMES=($(ls "$FRAMES_DIR"/*.jpg))
+  if [ ${#FRAMES[@]} -ge 4 ]; then
+    ffmpeg -y -v quiet \
+      -i "${FRAMES[0]}" -i "${FRAMES[1]}" -i "${FRAMES[2]}" -i "${FRAMES[3]}" \
+      -filter_complex "[0]scale=480:-1[a];[1]scale=480:-1[b];[2]scale=480:-1[c];[3]scale=480:-1[d];[a][b]hstack[top];[c][d]hstack[bot];[top][bot]vstack" \
+      -q:v 3 "$COMPOSITE"
+  else
+    cp "${FRAMES[0]}" "$COMPOSITE"
+  fi
+else
+  cp "$THUMB" "$COMPOSITE"
+fi
+
+[ ! -f "$COMPOSITE" ] && cp "$THUMB" "$COMPOSITE" 2>/dev/null
+
+CSIZE=$(stat -f%z "$COMPOSITE" 2>/dev/null || stat -c%s "$COMPOSITE" 2>/dev/null)
+echo "✓ Composite: $(echo "scale=1; $CSIZE/1024" | bc) KB"
+
+# 5. Send composite via iMessage
+SEND_TEXT="${TEXT:-🎬 Video frames from: $URL}"
+echo "📤 Sending to $RECIPIENT..."
+if imsg send --to "$RECIPIENT" --text "$SEND_TEXT" --file "$COMPOSITE" --service imessage 2>&1; then
+  echo "✅ Sent successfully"
+else
+  echo "❌ Send failed"
+  exit 1
+fi
+
+# 6. Output frame paths for qwen analysis if needed
+echo ""
+echo "📁 Frames available for analysis:"
+ls -la "$FRAMES_DIR"/*.jpg 2>/dev/null
+echo "📁 Composite: $COMPOSITE"
+echo "📁 Thumbnail: $THUMB"

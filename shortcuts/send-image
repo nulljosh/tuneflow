@@ -1,0 +1,76 @@
+#!/bin/bash
+# send-image: Download image → send via iMessage (with actual error handling)
+
+URL="$1"
+RECIPIENT="${2:-+17788462726}"
+TEXT="${3:-Image}"
+
+[ -z "$URL" ] && echo "Usage: send-image <url> [recipient] [text]" && exit 1
+
+# Detect video URLs and delegate to send-video
+if echo "$URL" | grep -qiE '\.(mp4|mov|webm|avi|mkv)(\?|$)' || \
+   echo "$URL" | grep -qiE '(youtube\.com|youtu\.be|vimeo\.com|tiktok\.com|twitter\.com/.*/(video|status)|x\.com/.*/(video|status))'; then
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  echo "🎬 Video detected, delegating to send-video..."
+  exec "$SCRIPT_DIR/send-video" "$URL" "$RECIPIENT" "$TEXT"
+fi
+
+# Use unique timestamp + random for truly unique files
+TIMESTAMP=$(date +%s%N)
+TEMP_FILE="/tmp/send_img_${TIMESTAMP}.tmp"
+JPG_FILE="/tmp/send_img_${TIMESTAMP}.jpg"
+
+trap "rm -f '$TEMP_FILE' '$JPG_FILE'" EXIT
+
+# 1. Download with full error details
+echo "⬇️  Downloading: $URL"
+if ! curl -s -L --max-time 10 "$URL" -o "$TEMP_FILE" 2>&1; then
+  echo "❌ Download failed: curl error"
+  exit 1
+fi
+
+# 2. Verify file exists and has content
+if [ ! -f "$TEMP_FILE" ]; then
+  echo "❌ Download failed: file not created"
+  exit 1
+fi
+
+SIZE=$(stat -f%z "$TEMP_FILE" 2>/dev/null || stat -c%s "$TEMP_FILE" 2>/dev/null)
+if [ "$SIZE" -eq 0 ]; then
+  echo "❌ Download failed: file is empty (0 bytes)"
+  exit 1
+fi
+
+echo "✓ Downloaded: $(printf '%.1f KB\n' $((SIZE / 1024)))"
+
+# 3. Try JPG conversion (don't fail if it doesn't work)
+SEND_FILE="$TEMP_FILE"
+if sips -s format jpeg "$TEMP_FILE" --out "$JPG_FILE" 2>/dev/null; then
+  JPG_SIZE=$(stat -f%z "$JPG_FILE" 2>/dev/null || stat -c%s "$JPG_FILE" 2>/dev/null)
+  if [ "$JPG_SIZE" -gt 0 ]; then
+    SEND_FILE="$JPG_FILE"
+    echo "✓ Converted to JPG: $(printf '%.1f KB\n' $((JPG_SIZE / 1024)))"
+  else
+    echo "⚠️  JPG conversion created empty file, using original"
+    SEND_FILE="$TEMP_FILE"
+  fi
+else
+  echo "⚠️  JPG conversion failed, using original format"
+  SEND_FILE="$TEMP_FILE"
+fi
+
+# 4. Final verification before sending
+FINAL_SIZE=$(stat -f%z "$SEND_FILE" 2>/dev/null || stat -c%s "$SEND_FILE" 2>/dev/null)
+if [ "$FINAL_SIZE" -eq 0 ]; then
+  echo "❌ File to send is empty - aborting"
+  exit 1
+fi
+
+# 5. Send with error capture
+echo "📤 Sending to $RECIPIENT..."
+if imsg send --to "$RECIPIENT" --text "$TEXT" --file "$SEND_FILE" --service imessage 2>&1; then
+  echo "✅ Sent successfully ($SEND_FILE, $FINAL_SIZE bytes)"
+else
+  echo "❌ imsg send failed"
+  exit 1
+fi
