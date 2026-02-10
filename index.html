@@ -6,7 +6,7 @@
     <title>Mac Automation Services — Joshua Trommel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,308 +15,360 @@
         }
 
         :root {
-            --black: #000000;
-            --white: #FFFFFF;
-            --gray: #888888;
-            --accent: #FF2D55;
-            --code-bg: #F5F5F5;
+            --bg: #F5F5F7;
+            --surface: rgba(255, 255, 255, 0.72);
+            --text: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent: #0071E3;
+            --border: rgba(0, 0, 0, 0.08);
+        }
+
+        @supports (backdrop-filter: blur(20px)) {
+            :root {
+                --surface: rgba(255, 255, 255, 0.72);
+            }
         }
 
         body {
-            font-family: 'Space Grotesk', -apple-system, sans-serif;
-            background: var(--white);
-            color: var(--black);
-            line-height: 1.5;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.47059;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .glass {
+            background: var(--surface);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 1px solid var(--border);
         }
 
         .container {
-            max-width: 900px;
+            max-width: 980px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 22px;
         }
 
         /* Hero */
         header {
-            padding: 100px 20px 80px;
-            border-bottom: 3px solid var(--black);
+            padding: 110px 0 80px;
+            text-align: center;
         }
 
         h1 {
-            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-size: clamp(48px, 6vw, 80px);
             font-weight: 700;
-            line-height: 0.95;
-            letter-spacing: -0.03em;
-            margin-bottom: 30px;
+            line-height: 1.05;
+            letter-spacing: -0.015em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text) 0%, #6E6E73 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .subtitle {
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
+        .tagline {
+            font-size: 28px;
+            line-height: 1.14286;
             font-weight: 400;
-            color: var(--gray);
-            max-width: 600px;
+            letter-spacing: .007em;
+            color: var(--text-secondary);
             margin-bottom: 40px;
         }
 
         .cta {
-            display: inline-block;
-            background: var(--black);
-            color: var(--white);
-            padding: 18px 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 980px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border: 3px solid var(--black);
-            transition: all 0.2s;
+            font-size: 17px;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .cta:hover {
-            background: var(--white);
-            color: var(--black);
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(0, 113, 227, 0.3);
         }
 
         /* Case Study */
         .case-study {
-            padding: 80px 20px;
+            padding: 80px 0;
         }
 
-        .section-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
+        .card {
+            margin: 40px 0;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .label {
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray);
-            margin-bottom: 20px;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            opacity: 0.8;
+            margin-bottom: 12px;
         }
 
         h2 {
-            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-size: clamp(32px, 4vw, 48px);
             font-weight: 700;
-            line-height: 1.1;
-            margin-bottom: 40px;
+            line-height: 1.08349;
+            letter-spacing: -0.003em;
+            margin-bottom: 16px;
+        }
+
+        .card-body {
+            padding: 48px;
         }
 
         .meta-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 40px;
-            margin: 50px 0;
-            padding: 40px 0;
-            border-top: 2px solid var(--black);
-            border-bottom: 2px solid var(--black);
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 32px;
+            margin: 40px 0;
         }
 
         .meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .meta-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray);
+            text-align: center;
         }
 
         .meta-value {
-            font-size: 2rem;
+            font-size: 56px;
             font-weight: 700;
-            color: var(--accent);
+            line-height: 1;
+            background: linear-gradient(135deg, var(--accent) 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
         }
 
-        .body-text {
-            font-size: 1.15rem;
-            line-height: 1.7;
-            margin: 30px 0;
-            max-width: 700px;
-        }
-
-        h3 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 60px 0 30px;
+        .meta-label {
+            font-size: 14px;
+            color: var(--text-secondary);
         }
 
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2px;
-            background: var(--black);
-            border: 2px solid var(--black);
+            gap: 16px;
             margin: 40px 0;
         }
 
         .feature {
-            background: var(--white);
-            padding: 30px;
+            padding: 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
         }
 
         .feature h4 {
-            font-size: 1.2rem;
+            font-size: 21px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .feature p {
-            color: var(--gray);
-            font-size: 0.95rem;
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.47059;
         }
 
-        .code-block {
-            background: var(--code-bg);
-            border: 2px solid var(--black);
-            padding: 30px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
+        h3 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+        }
+
+        .code-window {
+            margin: 32px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .code-header {
+            background: linear-gradient(to bottom, #3B3B3D 0%, #2C2C2E 100%);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #FF5F57; }
+        .dot-yellow { background: #FEBC2E; }
+        .dot-green { background: #28C840; }
+
+        .code-content {
+            background: #1E1E1E;
+            color: #D4D4D4;
+            padding: 24px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 13px;
             line-height: 1.6;
             overflow-x: auto;
-            margin: 30px 0;
         }
 
-        .code-comment {
-            color: var(--gray);
-        }
-
-        .code-command {
-            color: var(--black);
-            font-weight: 500;
-        }
-
-        .code-output {
-            color: var(--accent);
-        }
+        .code-comment { color: #6A9955; }
+        .code-command { color: #DCDCAA; }
+        .code-output { color: #4EC9B0; }
+        .code-symbol { color: #569CD6; }
 
         /* Pricing */
         .pricing {
-            padding: 80px 20px;
-            background: var(--black);
-            color: var(--white);
-        }
-
-        .pricing h2 {
-            color: var(--white);
+            padding: 80px 0;
         }
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2px;
-            background: var(--white);
-            border: 2px solid var(--white);
-            margin-top: 50px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
         }
 
         .price-card {
-            background: var(--black);
-            padding: 50px 30px;
+            padding: 40px 32px;
+            border-radius: 18px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
+        .price-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
         .price-card.featured {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent) 0%, #667eea 100%);
+            color: white;
+        }
+
+        .price-card.featured * {
+            color: white;
         }
 
         .price-badge {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 20px;
-        }
-
-        .price-card h3 {
-            font-size: 1.5rem;
-            margin: 0 0 20px 0;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
 
         .price {
-            font-size: 3.5rem;
+            font-size: 64px;
             font-weight: 700;
-            margin: 20px 0;
+            line-height: 1;
+            margin: 24px 0;
         }
 
         .price-card ul {
             list-style: none;
-            margin: 30px 0;
+            margin: 32px 0;
         }
 
         .price-card li {
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            font-size: 0.95rem;
+            font-size: 15px;
+            opacity: 0.9;
         }
 
-        .price-card li:last-child {
-            border-bottom: none;
-        }
-
-        .cta-secondary {
-            display: inline-block;
-            background: transparent;
-            color: var(--white);
-            padding: 15px 35px;
-            text-decoration: none;
+        .price-card li::before {
+            content: "✓ ";
+            margin-right: 8px;
             font-weight: 600;
-            border: 2px solid var(--white);
-            margin-top: 20px;
-            transition: all 0.2s;
-        }
-
-        .cta-secondary:hover {
-            background: var(--white);
-            color: var(--black);
         }
 
         /* Contact */
         .contact {
-            padding: 100px 20px;
+            padding: 100px 0;
             text-align: center;
         }
 
+        .contact-card {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 64px 48px;
+            border-radius: 24px;
+        }
+
         .contact h2 {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .contact p {
-            font-size: 1.2rem;
-            color: var(--gray);
+            font-size: 21px;
+            color: var(--text-secondary);
             margin-bottom: 40px;
         }
 
-        .contact a {
-            color: var(--black);
-            text-decoration: none;
+        .contact-link {
+            display: inline-block;
+            font-size: 28px;
             font-weight: 600;
-            border-bottom: 3px solid var(--accent);
-            padding-bottom: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 12px 0;
+            border-bottom: 2px solid var(--accent);
+            transition: all 0.3s ease;
         }
 
-        .footer-links {
-            margin-top: 50px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--gray);
+        .contact-link:hover {
+            opacity: 0.7;
         }
 
-        .footer-links a {
-            color: var(--gray);
-            border: none;
-            margin: 0 15px;
+        .social-links {
+            margin-top: 48px;
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .social-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--accent);
         }
 
         @media (max-width: 768px) {
             header {
-                padding: 60px 20px 40px;
-            }
-            
-            .meta-grid {
-                grid-template-columns: repeat(2, 1fr);
+                padding: 80px 0 60px;
             }
 
-            .pricing-grid,
-            .feature-grid {
+            .card-header,
+            .card-body {
+                padding: 32px 24px;
+            }
+
+            .pricing-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -326,127 +378,118 @@
     <header>
         <div class="container">
             <h1>Mac Automation<br>Services</h1>
-            <p class="subtitle">I build intelligent systems that eliminate hours of repetitive work</p>
-            <a href="#contact" class="cta">Let's Talk</a>
+            <p class="tagline">Intelligent systems that eliminate repetitive work</p>
+            <a href="#contact" class="cta">
+                Get Started
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 12L12 1M12 1H4.5M12 1V8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </a>
         </div>
     </header>
 
     <section class="case-study">
         <div class="container">
-            <p class="section-label">Featured Work</p>
-            <h2>AI-Powered Music Control System</h2>
+            <div class="card glass">
+                <div class="card-header">
+                    <p class="label">Featured Work</p>
+                    <h2>AI-Powered Music Control System</h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="meta-grid">
+                        <div class="meta-item">
+                            <div class="meta-value">1</div>
+                            <div class="meta-label">Day Built</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-value">25+</div>
+                            <div class="meta-label">Commands</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-value">∞</div>
+                            <div class="meta-label">Automation</div>
+                        </div>
+                    </div>
 
-            <div class="meta-grid">
-                <div class="meta-item">
-                    <span class="meta-label">Timeline</span>
-                    <span class="meta-value">1 DAY</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Commands</span>
-                    <span class="meta-value">25+</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Code</span>
-                    <span class="meta-value">~500</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Result</span>
-                    <span class="meta-value">∞</span>
-                </div>
-            </div>
+                    <p style="font-size: 19px; line-height: 1.42105; margin: 32px 0;">
+                        A comprehensive Apple Music automation system with intelligent auto-DJ that learns listening patterns, 
+                        queues similar tracks automatically, and creates smart playlists—all with zero manual intervention.
+                    </p>
 
-            <p class="body-text">
-                Built a comprehensive Apple Music automation system with intelligent auto-DJ that learns listening patterns, 
-                queues similar tracks automatically, and creates smart playlists. Zero manual intervention required.
-            </p>
+                    <h3>Capabilities</h3>
 
-            <h3>Capabilities</h3>
+                    <div class="feature-grid">
+                        <div class="feature glass">
+                            <h4>Auto-DJ</h4>
+                            <p>Monitors playback and queues tracks 20 seconds before each song ends</p>
+                        </div>
+                        <div class="feature glass">
+                            <h4>Smart Playlists</h4>
+                            <p>Creates playlists automatically every 10 songs</p>
+                        </div>
+                        <div class="feature glass">
+                            <h4>Learning System</h4>
+                            <p>Tracks ratings and loved songs to improve recommendations</p>
+                        </div>
+                        <div class="feature glass">
+                            <h4>Discovery</h4>
+                            <p>Finds hidden gems in your library</p>
+                        </div>
+                        <div class="feature glass">
+                            <h4>Analytics</h4>
+                            <p>Top played, recent history, genre breakdowns</p>
+                        </div>
+                        <div class="feature glass">
+                            <h4>Voice Control</h4>
+                            <p>Natural language commands</p>
+                        </div>
+                    </div>
 
-            <div class="feature-grid">
-                <div class="feature">
-                    <h4>Auto-DJ</h4>
-                    <p>Monitors playback and queues tracks 20 seconds before each song ends</p>
-                </div>
-                <div class="feature">
-                    <h4>Smart Playlists</h4>
-                    <p>Creates playlists automatically every 10 songs</p>
-                </div>
-                <div class="feature">
-                    <h4>Learning System</h4>
-                    <p>Tracks ratings and loved songs to improve recommendations</p>
-                </div>
-                <div class="feature">
-                    <h4>Discovery</h4>
-                    <p>Finds hidden gems in your library</p>
-                </div>
-                <div class="feature">
-                    <h4>Analytics</h4>
-                    <p>Top played, recent history, genre breakdowns</p>
-                </div>
-                <div class="feature">
-                    <h4>Voice Control</h4>
-                    <p>Natural language commands</p>
-                </div>
-            </div>
+                    <h3>In Action</h3>
 
-            <h3>In Action</h3>
-
-            <div class="code-block">
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span class="code-dot dot-red"></span>
+                            <span class="code-dot dot-yellow"></span>
+                            <span class="code-dot dot-green"></span>
+                        </div>
+                        <div class="code-content">
 <span class="code-comment"># Play from your library</span>
-<span class="code-command">$ music play kid cudi</span>
+<span class="code-symbol">$</span> <span class="code-command">music play</span> kid cudi
 <span class="code-output">▶️  Gorgeous - Kanye West</span>
 
 <span class="code-comment"># Start intelligent auto-DJ</span>
-<span class="code-command">$ dj start</span>
+<span class="code-symbol">$</span> <span class="code-command">dj start</span>
 <span class="code-output">🎧 Auto-DJ started
 📝 Will create smart playlists automatically</span>
 
 <span class="code-comment"># Love the current track</span>
-<span class="code-command">$ music love</span>
+<span class="code-symbol">$</span> <span class="code-command">music love</span>
 <span class="code-output">❤️  Loved: Gorgeous</span>
 
 <span class="code-comment"># Analytics</span>
-<span class="code-command">$ music top 25</span>
-<span class="code-output">🔥 Top 25 Most Played:
+<span class="code-symbol">$</span> <span class="code-command">music top</span> 25
+<span class="code-output">🔥 Top 25 Most Played
 1. Gorgeous - Kanye West (47 plays)
-2. Alright - Kendrick Lamar (43 plays)
-...</span>
-
-<span class="code-comment"># Check DJ status</span>
-<span class="code-command">$ dj status</span>
-<span class="code-output">✅ Auto-DJ running
-➕ Queued 15 tracks
-💾 Created 2 playlists</span>
+2. Alright - Kendrick Lamar (43 plays)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <h3>Technology</h3>
-            <ul style="list-style: none; padding: 20px 0;">
-                <li style="padding: 15px 0; border-bottom: 2px solid var(--code-bg);">
-                    <strong>AppleScript</strong> — Deep Apple Music integration
-                </li>
-                <li style="padding: 15px 0; border-bottom: 2px solid var(--code-bg);">
-                    <strong>Bash</strong> — Command-line interface & daemon process
-                </li>
-                <li style="padding: 15px 0; border-bottom: 2px solid var(--code-bg);">
-                    <strong>OpenClaw</strong> — AI agent orchestration
-                </li>
-                <li style="padding: 15px 0;">
-                    <strong>Test Suite</strong> — 10+ automated test cases
-                </li>
-            </ul>
         </div>
     </section>
 
     <section class="pricing">
         <div class="container">
-            <p class="section-label" style="color: rgba(255,255,255,0.5);">Pricing</p>
-            <h2>Services</h2>
+            <p class="label" style="text-align: center;">Pricing</p>
+            <h2 style="text-align: center;">Services</h2>
 
             <div class="pricing-grid">
-                <div class="price-card">
+                <div class="price-card glass">
                     <div class="price-badge">BRONZE</div>
                     <div class="price">$200</div>
-                    <p style="opacity: 0.7; margin-bottom: 30px;">Single automation</p>
+                    <p style="color: var(--text-secondary);">Single automation</p>
                     <ul>
                         <li>One workflow automation</li>
                         <li>Email, calendar, or files</li>
@@ -454,13 +497,12 @@
                         <li>Basic documentation</li>
                         <li>1 revision</li>
                     </ul>
-                    <a href="#contact" class="cta-secondary">Get Started</a>
                 </div>
 
                 <div class="price-card featured">
                     <div class="price-badge">SILVER · MOST POPULAR</div>
                     <div class="price">$500</div>
-                    <p style="opacity: 0.9; margin-bottom: 30px;">Multi-system automation</p>
+                    <p>Multi-system automation</p>
                     <ul>
                         <li>Complex workflows</li>
                         <li>Multiple app integration</li>
@@ -469,13 +511,12 @@
                         <li>Unlimited revisions</li>
                         <li>30-day support</li>
                     </ul>
-                    <a href="#contact" class="cta-secondary">Get Started</a>
                 </div>
 
-                <div class="price-card">
+                <div class="price-card glass">
                     <div class="price-badge">GOLD</div>
                     <div class="price">$1,500</div>
-                    <p style="opacity: 0.7; margin-bottom: 30px;">Full automation system</p>
+                    <p style="color: var(--text-secondary);">Full automation system</p>
                     <ul>
                         <li>Complete overhaul</li>
                         <li>AI agent integration</li>
@@ -483,9 +524,7 @@
                         <li>Documentation & training</li>
                         <li>Unlimited revisions</li>
                         <li>90-day support</li>
-                        <li>Monthly maintenance</li>
                     </ul>
-                    <a href="#contact" class="cta-secondary">Get Started</a>
                 </div>
             </div>
         </div>
@@ -493,14 +532,18 @@
 
     <section class="contact" id="contact">
         <div class="container">
-            <h2>Ready to automate?</h2>
-            <p>Let's build something exceptional</p>
-            <a href="mailto:contact@heyitsmejosh.com">contact@heyitsmejosh.com</a>
-            
-            <div class="footer-links">
-                <a href="https://github.com/nulljosh">GitHub</a>
-                <a href="https://heyitsmejosh.com">Portfolio</a>
-                <a href="https://heyitsmejosh.com/journal">Blog</a>
+            <div class="contact-card glass">
+                <h2>Ready to automate?</h2>
+                <p>Let's build something exceptional</p>
+                <a href="mailto:contact@heyitsmejosh.com" class="contact-link">
+                    contact@heyitsmejosh.com
+                </a>
+                
+                <div class="social-links">
+                    <a href="https://github.com/nulljosh">GitHub</a>
+                    <a href="https://heyitsmejosh.com">Portfolio</a>
+                    <a href="https://heyitsmejosh.com/journal">Blog</a>
+                </div>
             </div>
         </div>
     </section>
