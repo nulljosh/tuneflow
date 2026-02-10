@@ -87,8 +87,43 @@ EOF
         ;;
     
     next|skip)
-        osascript -e 'tell application "Music" to next track'
-        echo "⏭️  Skipped"
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set currentAlbum to album of currentTrack
+        set currentArtist to artist of currentTrack
+        set allTracks to (search playlist "Library" for currentAlbum)
+        
+        -- Find current track in album
+        set trackIndex to 0
+        set albumTracks to {}
+        repeat with aTrack in allTracks
+            if album of aTrack is currentAlbum and artist of aTrack is currentArtist then
+                set end of albumTracks to aTrack
+                if name of aTrack is name of currentTrack then
+                    set trackIndex to (count of albumTracks)
+                end if
+            end if
+        end repeat
+        
+        -- Play next track
+        if trackIndex > 0 and trackIndex < (count of albumTracks) then
+            set nextTrack to item (trackIndex + 1) of albumTracks
+            play nextTrack
+            return "⏭️  Skipped to: " & name of nextTrack
+        else if trackIndex = (count of albumTracks) then
+            return "⏹️  End of album"
+        else
+            -- Fallback: just use next track command
+            next track
+            return "⏭️  Skipped"
+        end if
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
         ;;
     
     prev|previous|back)
