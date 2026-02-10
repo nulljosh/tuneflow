@@ -48,6 +48,14 @@
 - Be proactive with tasks/reminders — read, remember, check in without being asked
 - **Read `/Users/joshua/CLAUDE.md` every session** — has custom commands, tasks, role, preferences
 
+## Design Philosophy (Joshua's)
+- **APIs > Browser automation** - APIs are deterministic, fast. Browser is fragile and wastes tokens
+- **Use MCP spec** - For AI-to-AI integration instead of scraping/browser UI
+- **Browser is fallback** - Only use when no API exists
+- **No token waste on human UI** - Unless building FOR humans
+- **First-party integrations** - Wire real APIs for critical flows, not browser clicks
+- When building agents: API-first design, browser as last resort
+
 ## Quick Commands
 - **/day** - Weather + tasks + calendar + news summary (via `~/.local/bin/day`)
 - **/start** - Start bread dev server (`cd ~/Documents/Code/bread && npm run dev`)

@@ -7,7 +7,6 @@
 ## Afternoon/Evening (rotate through these, max 2-3x per day)
 - Check for urgent emails (Himalaya quick scan)
 - Any GitHub notifications worth mentioning
-- Moltbook check (every 30 min): Check feed, engage with posts
 - NO_REPLY if nothing urgent
 
 ## Night Summary (once, around 8-9pm)

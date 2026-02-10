@@ -1,5 +1,5 @@
 #!/bin/bash
-# send-image: Download image → send via iMessage (with actual error handling)
+# send-image: Download image → send via iMessage (with robust error handling & retries)
 
 URL="$1"
 RECIPIENT="${2:-+17788462726}"
@@ -19,58 +19,156 @@ fi
 TIMESTAMP=$(date +%s%N)
 TEMP_FILE="/tmp/send_img_${TIMESTAMP}.tmp"
 JPG_FILE="/tmp/send_img_${TIMESTAMP}.jpg"
+CURL_LOG="/tmp/send_img_${TIMESTAMP}.curl.log"
 
-trap "rm -f '$TEMP_FILE' '$JPG_FILE'" EXIT
+trap "rm -f '$TEMP_FILE' '$JPG_FILE' '$CURL_LOG'" EXIT
 
-# 1. Download with full error details
-echo "⬇️  Downloading: $URL"
-if ! curl -s -L --max-time 10 "$URL" -o "$TEMP_FILE" 2>&1; then
-  echo "❌ Download failed: curl error"
-  exit 1
-fi
+# Helper function: Download with retries and proper error handling
+download_with_retry() {
+  local url="$1"
+  local output="$2"
+  local max_attempts=3
+  local timeout=15
+  local attempt=1
+  
+  while [ $attempt -le $max_attempts ]; do
+    echo "⬇️  Downloading (attempt $attempt/$max_attempts): $url"
+    
+    # Use proper User-Agent and better error handling
+    if curl -s -L \
+      --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" \
+      --max-time "$timeout" \
+      --connect-timeout 5 \
+      --retry 2 \
+      --retry-delay 1 \
+      "$url" -o "$output" >"$CURL_LOG" 2>&1; then
+      
+      # Verify file exists and has content
+      if [ ! -f "$output" ]; then
+        echo "⚠️  Download: File not created, retrying..."
+        attempt=$((attempt + 1))
+        sleep 1
+        continue
+      fi
+      
+      SIZE=$(stat -f%z "$output" 2>/dev/null || stat -c%s "$output" 2>/dev/null)
+      if [ "$SIZE" -eq 0 ]; then
+        echo "⚠️  Download: Empty file, retrying..."
+        rm -f "$output"
+        attempt=$((attempt + 1))
+        sleep 1
+        continue
+      fi
+      
+      # Validate it's actually an image (check MIME type)
+      FILE_TYPE=$(file -b "$output" 2>/dev/null)
+      if echo "$FILE_TYPE" | grep -qiE '(image|jpeg|png|gif|bmp|webp|heic)'; then
+        echo "✓ Downloaded: $(printf '%.1f KB\n' $((SIZE / 1024))) [$FILE_TYPE]"
+        return 0
+      else
+        # Sometimes images are downloaded with wrong Content-Type
+        # Check file magic bytes
+        MAGIC=$(xxd -p -l 4 "$output" 2>/dev/null)
+        if [[ "$MAGIC" == "ffd8ff"* ]] || [[ "$MAGIC" == "89504e47"* ]] || [[ "$MAGIC" == "47494638"* ]] || [[ "$MAGIC" == "424d"* ]]; then
+          echo "✓ Downloaded: $(printf '%.1f KB\n' $((SIZE / 1024))) [image by magic bytes]"
+          return 0
+        else
+          echo "⚠️  Downloaded file doesn't look like an image [$FILE_TYPE], retrying..."
+          rm -f "$output"
+          attempt=$((attempt + 1))
+          sleep 1
+          continue
+        fi
+      fi
+    else
+      CURL_ERR=$(cat "$CURL_LOG")
+      echo "⚠️  Download failed: $CURL_ERR"
+      rm -f "$output"
+      attempt=$((attempt + 1))
+      sleep 2  # Longer delay before retry
+      continue
+    fi
+  done
+  
+  echo "❌ Download failed after $max_attempts attempts"
+  return 1
+}
 
-# 2. Verify file exists and has content
-if [ ! -f "$TEMP_FILE" ]; then
-  echo "❌ Download failed: file not created"
+# 1. Download with retry logic
+if ! download_with_retry "$URL" "$TEMP_FILE"; then
   exit 1
 fi
 
 SIZE=$(stat -f%z "$TEMP_FILE" 2>/dev/null || stat -c%s "$TEMP_FILE" 2>/dev/null)
-if [ "$SIZE" -eq 0 ]; then
-  echo "❌ Download failed: file is empty (0 bytes)"
-  exit 1
-fi
 
-echo "✓ Downloaded: $(printf '%.1f KB\n' $((SIZE / 1024)))"
-
-# 3. Try JPG conversion (don't fail if it doesn't work)
+# 2. Try JPG conversion (with error handling)
 SEND_FILE="$TEMP_FILE"
-if sips -s format jpeg "$TEMP_FILE" --out "$JPG_FILE" 2>/dev/null; then
-  JPG_SIZE=$(stat -f%z "$JPG_FILE" 2>/dev/null || stat -c%s "$JPG_FILE" 2>/dev/null)
-  if [ "$JPG_SIZE" -gt 0 ]; then
-    SEND_FILE="$JPG_FILE"
-    echo "✓ Converted to JPG: $(printf '%.1f KB\n' $((JPG_SIZE / 1024)))"
+FILE_TYPE=$(file -b "$TEMP_FILE" 2>/dev/null)
+
+if ! echo "$FILE_TYPE" | grep -qiE '(JPEG|JPG)'; then
+  echo "📦 Converting to JPG (from $FILE_TYPE)..."
+  
+  if sips -s format jpeg "$TEMP_FILE" --out "$JPG_FILE" >"$CURL_LOG" 2>&1; then
+    JPG_SIZE=$(stat -f%z "$JPG_FILE" 2>/dev/null || stat -c%s "$JPG_FILE" 2>/dev/null)
+    if [ "$JPG_SIZE" -gt 0 ]; then
+      SEND_FILE="$JPG_FILE"
+      PERCENT=$((JPG_SIZE * 100 / SIZE))
+      echo "✓ Converted to JPG: $(printf '%.1f KB\n' $((JPG_SIZE / 1024))) ($PERCENT% of original)"
+    else
+      echo "⚠️  JPG conversion created empty file, using original"
+    fi
   else
-    echo "⚠️  JPG conversion created empty file, using original"
-    SEND_FILE="$TEMP_FILE"
+    SIPS_ERR=$(cat "$CURL_LOG")
+    echo "⚠️  JPG conversion failed ($SIPS_ERR), using original format"
   fi
 else
-  echo "⚠️  JPG conversion failed, using original format"
-  SEND_FILE="$TEMP_FILE"
+  echo "✓ Already JPG format, skipping conversion"
 fi
 
-# 4. Final verification before sending
+# 3. Final verification before sending
 FINAL_SIZE=$(stat -f%z "$SEND_FILE" 2>/dev/null || stat -c%s "$SEND_FILE" 2>/dev/null)
 if [ "$FINAL_SIZE" -eq 0 ]; then
   echo "❌ File to send is empty - aborting"
   exit 1
 fi
 
-# 5. Send with error capture
-echo "📤 Sending to $RECIPIENT..."
-if imsg send --to "$RECIPIENT" --text "$TEXT" --file "$SEND_FILE" --service imessage 2>&1; then
-  echo "✅ Sent successfully ($SEND_FILE, $FINAL_SIZE bytes)"
-else
-  echo "❌ imsg send failed"
+# 4. Send with retry logic
+send_with_retry() {
+  local recipient="$1"
+  local file="$2"
+  local text="$3"
+  local max_attempts=3
+  local attempt=1
+  
+  while [ $attempt -le $max_attempts ]; do
+    echo "📤 Sending to $recipient (attempt $attempt/$max_attempts)..."
+    
+    if imsg send --to "$recipient" --text "$text" --file "$file" --service imessage >"$CURL_LOG" 2>&1; then
+      FINAL_SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+      echo "✅ Sent successfully! ($FINAL_SIZE bytes)"
+      return 0
+    else
+      IMSG_ERR=$(cat "$CURL_LOG")
+      echo "⚠️  Send attempt $attempt failed: $IMSG_ERR"
+      
+      # Check if it's a temporary error (connection, timeout) vs permanent (file issue)
+      if echo "$IMSG_ERR" | grep -qiE '(timeout|connection|network|temporary)'; then
+        attempt=$((attempt + 1))
+        sleep 2
+        continue
+      else
+        # Permanent error, don't retry
+        echo "❌ Send failed (permanent error)"
+        return 1
+      fi
+    fi
+  done
+  
+  echo "❌ Send failed after $max_attempts attempts"
+  return 1
+}
+
+# 5. Send the image
+if ! send_with_retry "$RECIPIENT" "$SEND_FILE" "$TEXT"; then
   exit 1
 fi

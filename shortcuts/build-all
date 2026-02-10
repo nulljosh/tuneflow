@@ -1,0 +1,238 @@
+#!/bin/bash
+
+################################################################################
+# build-all: Build all projects in ~/Documents/Code/
+#
+# Detects project type (npm, cargo, python, makefile, etc.) and runs
+# appropriate build commands. Continues on error and reports summary.
+################################################################################
+
+set -o pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Tracking
+PASSED=0
+FAILED=0
+SKIPPED=0
+declare -a FAILED_PROJECTS
+declare -a PASSED_PROJECTS
+declare -a SKIPPED_PROJECTS
+
+# Paths
+CODE_DIR=~/Documents/Code
+LOG_FILE="${LOG_FILE:-.build-all.log}"
+
+# Create log file
+: > "$LOG_FILE"
+
+################################################################################
+# Logging functions
+################################################################################
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+log_project() {
+    local status="$1"
+    local project="$2"
+    local msg="$3"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$status] $project: $msg" | tee -a "$LOG_FILE"
+}
+
+################################################################################
+# Detection functions
+################################################################################
+
+# Detect if directory is a valid project (has README.md and .git)
+is_valid_project() {
+    local dir="$1"
+    [[ -f "$dir/README.md" && -d "$dir/.git" ]]
+}
+
+# Detect build system and run appropriate build command
+detect_and_build() {
+    local project_dir="$1"
+    local project_name=$(basename "$project_dir")
+    
+    # Node.js (npm/yarn/pnpm)
+    if [[ -f "$project_dir/package.json" ]]; then
+        if [[ -f "$project_dir/pnpm-lock.yaml" ]]; then
+            log_project "BUILD" "$project_name" "Detected pnpm project"
+            (cd "$project_dir" && pnpm install && pnpm run build 2>&1) >> "$LOG_FILE" 2>&1
+        elif [[ -f "$project_dir/yarn.lock" ]]; then
+            log_project "BUILD" "$project_name" "Detected yarn project"
+            (cd "$project_dir" && yarn install && yarn build 2>&1) >> "$LOG_FILE" 2>&1
+        else
+            log_project "BUILD" "$project_name" "Detected npm project"
+            (cd "$project_dir" && npm install && npm run build 2>&1) >> "$LOG_FILE" 2>&1
+        fi
+        return $?
+    fi
+    
+    # Rust (Cargo)
+    if [[ -f "$project_dir/Cargo.toml" ]]; then
+        log_project "BUILD" "$project_name" "Detected Rust/Cargo project"
+        (cd "$project_dir" && cargo build --release 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # Python
+    if [[ -f "$project_dir/setup.py" || -f "$project_dir/pyproject.toml" || -f "$project_dir/requirements.txt" ]]; then
+        log_project "BUILD" "$project_name" "Detected Python project"
+        (cd "$project_dir" && python -m pip install -e . 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # Go
+    if [[ -f "$project_dir/go.mod" ]]; then
+        log_project "BUILD" "$project_name" "Detected Go project"
+        (cd "$project_dir" && go build ./... 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # Java/Gradle
+    if [[ -f "$project_dir/build.gradle" || -f "$project_dir/build.gradle.kts" ]]; then
+        log_project "BUILD" "$project_name" "Detected Gradle project"
+        (cd "$project_dir" && ./gradlew build 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # Java/Maven
+    if [[ -f "$project_dir/pom.xml" ]]; then
+        log_project "BUILD" "$project_name" "Detected Maven project"
+        (cd "$project_dir" && mvn clean package 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # Makefile
+    if [[ -f "$project_dir/Makefile" ]]; then
+        log_project "BUILD" "$project_name" "Detected Makefile project"
+        (cd "$project_dir" && make 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # C/C++ with CMake
+    if [[ -f "$project_dir/CMakeLists.txt" ]]; then
+        log_project "BUILD" "$project_name" "Detected CMake project"
+        (cd "$project_dir" && mkdir -p build && cd build && cmake .. && make 2>&1) >> "$LOG_FILE" 2>&1
+        return $?
+    fi
+    
+    # No build system detected
+    log_project "SKIP" "$project_name" "No build system detected"
+    return 2
+}
+
+################################################################################
+# Main logic
+################################################################################
+
+log "=========================================="
+log "Building all projects in $CODE_DIR"
+log "=========================================="
+
+# Check if directory exists
+if [[ ! -d "$CODE_DIR" ]]; then
+    log "${RED}Error: $CODE_DIR does not exist${NC}"
+    exit 1
+fi
+
+# Find all potential projects
+declare -a projects
+while IFS= read -r -d '' dir; do
+    if is_valid_project "$dir"; then
+        projects+=("$dir")
+    fi
+done < <(find "$CODE_DIR" -maxdepth 1 -type d -print0)
+
+if [[ ${#projects[@]} -eq 0 ]]; then
+    log "${YELLOW}No projects found (need README.md + .git)${NC}"
+    exit 0
+fi
+
+log "Found ${#projects[@]} project(s) to build"
+log ""
+
+# Build each project
+for project in "${projects[@]}"; do
+    project_name=$(basename "$project")
+    
+    # Skip if it's the . or .. directory
+    [[ "$project_name" == "." || "$project_name" == ".." ]] && continue
+    
+    # Skip hidden directories
+    [[ "$project_name" == .* ]] && {
+        log_project "SKIP" "$project_name" "Hidden directory"
+        ((SKIPPED++))
+        SKIPPED_PROJECTS+=("$project_name")
+        continue
+    }
+    
+    echo ""
+    log_project "START" "$project_name" "Building..."
+    
+    # Run build and capture exit code
+    if detect_and_build "$project"; then
+        log_project "✓ PASS" "$project_name" "Build successful"
+        ((PASSED++))
+        PASSED_PROJECTS+=("$project_name")
+    else
+        exit_code=$?
+        if [[ $exit_code -eq 2 ]]; then
+            # No build system detected
+            ((SKIPPED++))
+            SKIPPED_PROJECTS+=("$project_name")
+        else
+            # Build failed
+            log_project "✗ FAIL" "$project_name" "Build failed (exit code: $exit_code)"
+            ((FAILED++))
+            FAILED_PROJECTS+=("$project_name")
+        fi
+    fi
+done
+
+# Summary
+echo ""
+echo "=========================================="
+log "Build Summary"
+log "=========================================="
+log "Passed:  ${GREEN}$PASSED${NC}"
+log "Failed:  ${RED}$FAILED${NC}"
+log "Skipped: ${YELLOW}$SKIPPED${NC}"
+log "Total:   $((PASSED + FAILED + SKIPPED))"
+log ""
+
+if [[ $PASSED -gt 0 ]]; then
+    log "${GREEN}✓ Passed:${NC}"
+    for p in "${PASSED_PROJECTS[@]}"; do
+        log "  - $p"
+    done
+fi
+
+if [[ $FAILED -gt 0 ]]; then
+    log "${RED}✗ Failed:${NC}"
+    for p in "${FAILED_PROJECTS[@]}"; do
+        log "  - $p"
+    done
+fi
+
+if [[ $SKIPPED -gt 0 ]]; then
+    log "${YELLOW}⊘ Skipped:${NC}"
+    for p in "${SKIPPED_PROJECTS[@]}"; do
+        log "  - $p"
+    done
+fi
+
+log ""
+log "Full log: $LOG_FILE"
+log "=========================================="
+
+# Exit with failure if any builds failed
+[[ $FAILED -gt 0 ]] && exit 1 || exit 0

@@ -1,0 +1,154 @@
+#!/bin/bash
+
+##############################################################################
+# Backup Automation Script
+# Backs up ~/Documents/Code/, ~/.openclaw/workspace/, and personal configs
+# Retains last 7 days, compresses with tar.gz, logs backup sizes
+##############################################################################
+
+set -euo pipefail
+
+# Configuration
+BACKUP_ROOT="${HOME}/.openclaw/backups"
+BACKUP_DATE=$(date +%Y-%m-%d)
+BACKUP_DIR="${BACKUP_ROOT}/${BACKUP_DATE}"
+LOG_FILE="${BACKUP_DIR}/backup.log"
+RETENTION_DAYS=7
+
+# Paths to backup
+BACKUP_PATHS=(
+    "${HOME}/Documents/Code"
+    "${HOME}/.openclaw/workspace"
+    "${HOME}/CLAUDE.md"
+)
+
+# Additional personal config files to include
+CONFIG_FILES=(
+    "${HOME}/.gitconfig"
+    "${HOME}/.zshrc"
+    "${HOME}/.bash_profile"
+    "${HOME}/.ssh/config"
+)
+
+##############################################################################
+# Helper Functions
+##############################################################################
+
+log() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[${timestamp}] $1" | tee -a "${LOG_FILE}"
+}
+
+log_size() {
+    local file=$1
+    local size_bytes=$(stat -f%z "${file}" 2>/dev/null || stat -c%s "${file}" 2>/dev/null || echo "0")
+    local size_mb=$(echo "scale=2; ${size_bytes} / 1048576" | bc)
+    log "  Size: ${size_mb} MB (${size_bytes} bytes)"
+}
+
+##############################################################################
+# Main Backup Process
+##############################################################################
+
+main() {
+    # Create backup directory
+    mkdir -p "${BACKUP_DIR}"
+    
+    log "=========================================="
+    log "Starting backup for ${BACKUP_DATE}"
+    log "=========================================="
+    
+    # Backup primary paths
+    for path in "${BACKUP_PATHS[@]}"; do
+        if [ -e "${path}" ]; then
+            local basename=$(basename "${path}")
+            local backup_file="${BACKUP_DIR}/${basename}-${BACKUP_DATE}.tar.gz"
+            
+            log "Backing up: ${path}"
+            
+            if tar -czf "${backup_file}" -C "$(dirname "${path}")" "$(basename "${path}")" 2>> "${LOG_FILE}"; then
+                log_size "${backup_file}"
+                log "✓ Backup successful"
+            else
+                log "✗ Error backing up ${path}"
+            fi
+        else
+            log "⚠ Skipping (not found): ${path}"
+        fi
+    done
+    
+    # Backup config files
+    local configs_backup="${BACKUP_DIR}/configs-${BACKUP_DATE}.tar.gz"
+    local temp_configs=$(mktemp -d)
+    trap "rm -rf ${temp_configs}" EXIT
+    
+    log "Backing up config files..."
+    local configs_found=0
+    
+    for config_file in "${CONFIG_FILES[@]}"; do
+        if [ -e "${config_file}" ]; then
+            cp "${config_file}" "${temp_configs}/" 2>/dev/null || true
+            ((configs_found++))
+        fi
+    done
+    
+    if [ ${configs_found} -gt 0 ]; then
+        if tar -czf "${configs_backup}" -C "${temp_configs}" . 2>> "${LOG_FILE}"; then
+            log "  Backed up ${configs_found} config file(s)"
+            log_size "${configs_backup}"
+            log "✓ Config backup successful"
+        fi
+    else
+        log "  No config files found to backup"
+        rm -f "${configs_backup}" 2>/dev/null || true
+    fi
+    
+    # Generate backup summary
+    log ""
+    log "Backup Summary:"
+    du -sh "${BACKUP_DIR}" | awk '{print "  Total size: " $1}' | tee -a "${LOG_FILE}"
+    log "  Files: $(ls -1 "${BACKUP_DIR}"/*.tar.gz 2>/dev/null | wc -l) archives"
+    
+    ##########################################################################
+    # Cleanup old backups (keep last 7 days)
+    ##########################################################################
+    
+    log ""
+    log "Cleaning up backups older than ${RETENTION_DAYS} days..."
+    
+    local cutoff_date=$(date -u -d "${RETENTION_DAYS} days ago" +%Y-%m-%d 2>/dev/null || \
+                        date -u -v-${RETENTION_DAYS}d +%Y-%m-%d)
+    
+    local deleted_count=0
+    local freed_space=0
+    
+    for old_backup_dir in "${BACKUP_ROOT}"/*; do
+        if [ -d "${old_backup_dir}" ]; then
+            local dir_date=$(basename "${old_backup_dir}")
+            
+            # Simple date comparison
+            if [[ "${dir_date}" < "${cutoff_date}" ]]; then
+                local dir_size=$(du -sb "${old_backup_dir}" | awk '{print $1}')
+                log "  Removing: ${dir_date} ($(echo "scale=2; ${dir_size} / 1048576" | bc) MB)"
+                rm -rf "${old_backup_dir}"
+                ((deleted_count++))
+                freed_space=$((freed_space + dir_size))
+            fi
+        fi
+    done
+    
+    if [ ${deleted_count} -gt 0 ]; then
+        local freed_mb=$(echo "scale=2; ${freed_space} / 1048576" | bc)
+        log "  Deleted ${deleted_count} old backup(s), freed ${freed_mb} MB"
+    else
+        log "  No old backups to delete"
+    fi
+    
+    log ""
+    log "=========================================="
+    log "Backup completed successfully"
+    log "=========================================="
+}
+
+# Run main function
+main "$@"
