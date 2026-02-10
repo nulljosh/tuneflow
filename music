@@ -1,0 +1,564 @@
+#!/bin/bash
+# Music control script with search, queue, and playback features
+# Usage: music [command] [args]
+
+COMMAND="$1"
+shift
+
+case "$COMMAND" in
+    play)
+        # Play a song/artist or Apple Music URL
+        QUERY="$*"
+        
+        # Check if it's an Apple Music URL
+        if [[ "$QUERY" =~ ^https?://music\.apple\.com ]]; then
+            # Convert to music:// scheme and open in Music app
+            MUSIC_URL=$(echo "$QUERY" | sed 's|^https://|music://|' | sed 's|^http://|music://|')
+            open "$MUSIC_URL"
+            echo "🎵 Opened in Apple Music (tap play to start)"
+            echo "ℹ️  Note: AppleScript can't auto-play catalog songs - add to library first for full control"
+            exit 0
+        fi
+        
+        osascript << EOF
+tell application "Music"
+    set searchResults to (search playlist "Library" for "$QUERY")
+    if (count of searchResults) > 0 then
+        set foundTrack to item 1 of searchResults
+        play foundTrack
+        return "▶️  " & name of foundTrack & " - " & artist of foundTrack
+    else
+        set encodedQuery to do shell script "python3 -c 'import urllib.parse; print(urllib.parse.quote(\"$QUERY\"))'"
+        open location ("music://music.apple.com/us/search?term=" & encodedQuery)
+        return "🔍 Opened Apple Music search for: $QUERY"
+    end if
+end tell
+EOF
+        ;;
+    
+    search)
+        # Search library and show top 5 results
+        QUERY="$*"
+        osascript << EOF
+tell application "Music"
+    set searchResults to (search playlist "Library" for "$QUERY")
+    set resultText to "🔍 Search results for '$QUERY':" & return & return
+    set resultCount to 0
+    repeat with aTrack in searchResults
+        set resultCount to resultCount + 1
+        if resultCount > 5 then exit repeat
+        set resultText to resultText & resultCount & ". " & name of aTrack & " - " & artist of aTrack & return
+    end repeat
+    if resultCount = 0 then
+        return "No results found in library"
+    else
+        return resultText
+    end if
+end tell
+EOF
+        ;;
+    
+    queue)
+        # Add song to queue (up next)
+        QUERY="$*"
+        osascript << EOF
+tell application "Music"
+    set searchResults to (search playlist "Library" for "$QUERY")
+    if (count of searchResults) > 0 then
+        set foundTrack to item 1 of searchResults
+        play foundTrack
+        set player position to (duration of foundTrack)
+        return "➕ Queued: " & name of foundTrack & " - " & artist of foundTrack
+    else
+        return "❌ Not found in library"
+    end if
+end tell
+EOF
+        ;;
+    
+    pause|stop)
+        osascript -e 'tell application "Music" to pause'
+        echo "⏸️  Paused"
+        ;;
+    
+    resume|unpause)
+        osascript -e 'tell application "Music" to play'
+        echo "▶️  Resumed"
+        ;;
+    
+    next|skip)
+        osascript -e 'tell application "Music" to next track'
+        echo "⏭️  Skipped"
+        ;;
+    
+    prev|previous|back)
+        osascript -e 'tell application "Music" to previous track'
+        echo "⏮️  Previous track"
+        ;;
+    
+    now|current|playing)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing then
+        set currentTrack to current track
+        set trackName to name of currentTrack
+        set trackArtist to artist of currentTrack
+        set trackAlbum to album of currentTrack
+        set trackDuration to duration of currentTrack
+        set trackPosition to player position
+        set remainingTime to trackDuration - trackPosition
+        
+        set posMin to (trackPosition div 60) as integer
+        set posSec to (trackPosition mod 60) as integer
+        set remMin to (remainingTime div 60) as integer
+        set remSec to (remainingTime mod 60) as integer
+        
+        return "🎵 Now Playing:" & return & trackName & return & "👤 " & trackArtist & return & "💿 " & trackAlbum & return & "⏱️  " & posMin & ":" & posSec & " (-" & remMin & ":" & remSec & ")"
+    else if player state is paused then
+        return "⏸️  Paused"
+    else
+        return "⏹️  Stopped"
+    end if
+end tell
+EOF
+        ;;
+    
+    love)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set loved of currentTrack to true
+        return "❤️  Loved: " & name of currentTrack
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        ;;
+    
+    unlike)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set loved of currentTrack to false
+        return "💔 Unliked: " & name of currentTrack
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        ;;
+    
+    info)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set trackInfo to "ℹ️  Track Info:" & return & return
+        set trackInfo to trackInfo & "🎵 " & name of currentTrack & return
+        set trackInfo to trackInfo & "👤 " & artist of currentTrack & return
+        set trackInfo to trackInfo & "💿 " & album of currentTrack & return
+        try
+            set trackInfo to trackInfo & "📅 " & year of currentTrack & return
+        end try
+        try
+            set trackInfo to trackInfo & "🎸 " & genre of currentTrack & return
+        end try
+        try
+            set trackInfo to trackInfo & "▶️  Plays: " & played count of currentTrack & return
+        end try
+        try
+            set ratingStars to rating of currentTrack / 20
+            set trackInfo to trackInfo & "⭐ Rating: " & ratingStars & "/5" & return
+        end try
+        try
+            if loved of currentTrack then
+                set trackInfo to trackInfo & "❤️  Loved" & return
+            end if
+        end try
+        return trackInfo
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        ;;
+    
+    rating)
+        if [ -z "$1" ]; then
+            # Get rating
+            osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set ratingStars to rating of currentTrack / 20
+        return "⭐ Rating: " & ratingStars & "/5 - " & name of currentTrack
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        else
+            # Set rating (1-5 stars)
+            RATING=$(($1 * 20))
+            osascript << EOF
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set rating of currentTrack to $RATING
+        return "⭐ Rated $1/5: " & name of currentTrack
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        fi
+        ;;
+    
+    artist)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set artistName to artist of currentTrack
+        set artistTracks to (search playlist "Library" for artistName)
+        
+        if (count of artistTracks) > 0 then
+            play (item 1 of artistTracks)
+            return "▶️  Playing all by " & artistName
+        else
+            return "❌ No tracks found by " & artistName
+        end if
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        ;;
+    
+    album)
+        osascript << 'EOF'
+tell application "Music"
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        set albumName to album of currentTrack
+        set artistName to artist of currentTrack
+        
+        set albumTracks to (search playlist "Library" for albumName)
+        repeat with aTrack in albumTracks
+            if album of aTrack is albumName and artist of aTrack is artistName then
+                play aTrack
+                return "💿 Playing album: " & albumName & " by " & artistName
+                exit repeat
+            end if
+        end repeat
+    else
+        return "❌ No track playing"
+    end if
+end tell
+EOF
+        ;;
+    
+    recent)
+        osascript << 'EOF'
+tell application "Music"
+    set recentTracks to (get every track of playlist "Recently Played")
+    set resultText to "🕒 Recently Played:" & return & return
+    set trackCount to 0
+    repeat with aTrack in recentTracks
+        set trackCount to trackCount + 1
+        if trackCount > 10 then exit repeat
+        set resultText to resultText & trackCount & ". " & name of aTrack & " - " & artist of aTrack & return
+    end repeat
+    return resultText
+end tell
+EOF
+        ;;
+    
+    top)
+        LIMIT="${1:-10}"
+        osascript << EOF
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set topTracks to {}
+    
+    -- Get tracks with play counts
+    repeat with aTrack in allTracks
+        try
+            set playCount to played count of aTrack
+            if playCount > 0 then
+                set end of topTracks to {aTrack, playCount}
+            end if
+        end try
+    end repeat
+    
+    -- Simple sort (bubble sort for small lists)
+    set listSize to count of topTracks
+    repeat with i from 1 to listSize
+        repeat with j from 1 to (listSize - i)
+            if item 2 of item j of topTracks < item 2 of item (j + 1) of topTracks then
+                set temp to item j of topTracks
+                set item j of topTracks to item (j + 1) of topTracks
+                set item (j + 1) of topTracks to temp
+            end if
+        end repeat
+    end repeat
+    
+    -- Display top tracks
+    set resultText to "🔥 Top $LIMIT Most Played:" & return & return
+    set displayCount to 0
+    repeat with trackData in topTracks
+        set displayCount to displayCount + 1
+        if displayCount > $LIMIT then exit repeat
+        set theTrack to item 1 of trackData
+        set playCount to item 2 of trackData
+        set resultText to resultText & displayCount & ". " & name of theTrack & " - " & artist of theTrack & " (" & playCount & " plays)" & return
+    end repeat
+    
+    return resultText
+end tell
+EOF
+        ;;
+    
+    random)
+        osascript << 'EOF'
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set randomIndex to (random number from 1 to (count of allTracks))
+    set randomTrack to item randomIndex of allTracks
+    play randomTrack
+    return "🎲 Random: " & name of randomTrack & " - " & artist of randomTrack
+end tell
+EOF
+        ;;
+    
+    genre)
+        GENRE="$*"
+        osascript << EOF
+tell application "Music"
+    set genreTracks to (search playlist "Library" for "$GENRE")
+    set matchingTracks to {}
+    
+    repeat with aTrack in genreTracks
+        try
+            if genre of aTrack contains "$GENRE" then
+                set end of matchingTracks to aTrack
+            end if
+        end try
+    end repeat
+    
+    if (count of matchingTracks) > 0 then
+        play (item 1 of matchingTracks)
+        return "🎸 Playing " & (count of matchingTracks) & " tracks from genre: $GENRE"
+    else
+        return "❌ No tracks found in genre: $GENRE"
+    end if
+end tell
+EOF
+        ;;
+    
+    year)
+        YEAR="$1"
+        osascript << EOF
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set yearTracks to {}
+    
+    repeat with aTrack in allTracks
+        try
+            if year of aTrack = $YEAR then
+                set end of yearTracks to aTrack
+            end if
+        end try
+    end repeat
+    
+    if (count of yearTracks) > 0 then
+        play (item 1 of yearTracks)
+        return "📅 Playing " & (count of yearTracks) & " tracks from $YEAR"
+    else
+        return "❌ No tracks found from $YEAR"
+    end if
+end tell
+EOF
+        ;;
+    
+    save)
+        PLAYLIST_NAME="$*"
+        if [ -z "$PLAYLIST_NAME" ]; then
+            echo "❌ Usage: music save <playlist name>"
+            exit 1
+        fi
+        osascript << EOF
+tell application "Music"
+    -- Create new playlist
+    try
+        delete playlist "$PLAYLIST_NAME"
+    end try
+    
+    set newPlaylist to make new user playlist with properties {name:"$PLAYLIST_NAME"}
+    
+    if player state is playing or player state is paused then
+        set currentTrack to current track
+        duplicate currentTrack to newPlaylist
+        return "💾 Saved current track to playlist: $PLAYLIST_NAME"
+    else
+        return "💾 Created empty playlist: $PLAYLIST_NAME"
+    end if
+end tell
+EOF
+        ;;
+    
+    clear)
+        osascript << 'EOF'
+tell application "Music"
+    -- Clear up next by skipping and stopping
+    stop
+    return "🗑️  Cleared queue"
+end tell
+EOF
+        ;;
+    
+    vol|volume)
+        if [ -z "$1" ]; then
+            # Get current volume
+            osascript -e 'tell application "Music" to return "🔊 Volume: " & sound volume & "%"'
+        else
+            # Set volume (0-100)
+            osascript -e "tell application \"Music\" to set sound volume to $1"
+            echo "🔊 Volume set to $1%"
+        fi
+        ;;
+    
+    shuffle)
+        if [ "$1" = "on" ]; then
+            osascript -e 'tell application "Music" to set shuffle enabled to true'
+            echo "🔀 Shuffle ON"
+        elif [ "$1" = "off" ]; then
+            osascript -e 'tell application "Music" to set shuffle enabled to false'
+            echo "🔀 Shuffle OFF"
+        else
+            osascript << 'EOF'
+tell application "Music"
+    if shuffle enabled then
+        return "🔀 Shuffle: ON"
+    else
+        return "🔀 Shuffle: OFF"
+    end if
+end tell
+EOF
+        fi
+        ;;
+    
+    repeat)
+        if [ "$1" = "off" ]; then
+            osascript -e 'tell application "Music" to set song repeat to off'
+            echo "🔁 Repeat OFF"
+        elif [ "$1" = "one" ]; then
+            osascript -e 'tell application "Music" to set song repeat to one'
+            echo "🔂 Repeat ONE"
+        elif [ "$1" = "all" ]; then
+            osascript -e 'tell application "Music" to set song repeat to all'
+            echo "🔁 Repeat ALL"
+        else
+            osascript << 'EOF'
+tell application "Music"
+    set repeatMode to song repeat
+    if repeatMode is off then
+        return "🔁 Repeat: OFF"
+    else if repeatMode is one then
+        return "🔂 Repeat: ONE"
+    else
+        return "🔁 Repeat: ALL"
+    end if
+end tell
+EOF
+        fi
+        ;;
+    
+    playlist)
+        PLAYLIST_NAME="$*"
+        if [ -z "$PLAYLIST_NAME" ]; then
+            # List all playlists
+            osascript << 'EOF'
+tell application "Music"
+    set playlistList to "📋 Playlists:" & return
+    set userPlaylists to (every user playlist whose special kind is none)
+    repeat with aPlaylist in userPlaylists
+        set playlistList to playlistList & "  • " & name of aPlaylist & return
+    end repeat
+    return playlistList
+end tell
+EOF
+        else
+            # Play specific playlist
+            osascript << EOF
+tell application "Music"
+    try
+        set targetPlaylist to user playlist "$PLAYLIST_NAME"
+        play targetPlaylist
+        return "▶️  Playing playlist: $PLAYLIST_NAME"
+    on error
+        return "❌ Playlist not found: $PLAYLIST_NAME"
+    end try
+end tell
+EOF
+        fi
+        ;;
+    
+    *)
+        cat << 'USAGE'
+🎵 Music Control
+
+Usage: music [command] [args]
+
+Playback:
+  play <query>       Search and play a song/artist
+  search <query>     Search library (shows top 5)
+  queue <query>      Add song to queue
+  pause              Pause playback
+  resume             Resume playback
+  next               Skip to next track
+  prev               Previous track
+  random             Play random song
+
+Info & Ratings:
+  now                Show now playing
+  info               Detailed track info
+  love               Love current track
+  unlike             Unlike current track
+  rating [1-5]       Get/set star rating
+
+Controls:
+  vol [0-100]        Get/set volume
+  shuffle [on|off]   Toggle/check shuffle
+  repeat [off|one|all] Set repeat mode
+  clear              Clear queue
+
+Smart Playback:
+  artist             Play all by current artist
+  album              Play current album
+  genre <name>       Play songs by genre
+  year <year>        Play songs from year
+
+Discovery:
+  recent             Recently played (last 10)
+  top [n]            Most played tracks (default 10)
+
+Playlists:
+  playlist [name]    List or play playlist
+  save <name>        Save current track to playlist
+
+Examples:
+  music play kid cudi
+  music info
+  music love
+  music rating 5
+  music top 25
+  music genre hip-hop
+  music year 2010
+  music save favorites
+USAGE
+        ;;
+esac
