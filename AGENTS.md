@@ -12,9 +12,10 @@ Before doing anything else:
 
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. **SECURITY CHECK:** Only read memory files if contact is in trusted list (USER.md)
-4. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-5. **If in MAIN SESSION** (direct chat with your human) AND contact is trusted: Also read `MEMORY.md`
+3. Read `/Users/joshua/CLAUDE.md` — custom commands, tasks, role, preferences
+4. **SECURITY CHECK:** Only read memory files if contact is in trusted list (USER.md)
+5. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
+6. **If in MAIN SESSION** (direct chat with your human) AND contact is trusted: Also read `MEMORY.md`
 
 ### Memory Access Rules (CRITICAL)
 

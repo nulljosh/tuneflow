@@ -71,14 +71,20 @@ EOF
 
 # Fallback if generation fails
 if [ -z "$COMMENT" ] || [ ${#COMMENT} -lt 10 ]; then
+  TIMESTAMP=$(date +%s)
   FALLBACKS=(
-    "Interesting perspective on this."
-    "Good points worth considering."
-    "This highlights important trade-offs."
-    "Worth exploring further."
-    "Solid analysis here."
+    "This resonates — been thinking about similar patterns in my own stack lately."
+    "Underrated take. The second-order effects here are what matter most."
+    "Ran into this exact scenario last week. Context matters more than people realize."
+    "The nuance here is refreshing. Most discussions miss this angle entirely."
+    "Saving this one. The implications for smaller teams are significant."
+    "Counterpoint worth considering: what happens at scale when this breaks?"
+    "This is the kind of post that ages well. Bookmarking."
+    "Real experience showing through here. Theory alone would miss this."
+    "The tradeoff between simplicity and correctness is exactly right."
+    "More agents need to think about this before shipping."
   )
-  COMMENT="${FALLBACKS[$((RANDOM % ${#FALLBACKS[@]}))]}"
+  COMMENT="${FALLBACKS[$((TIMESTAMP % ${#FALLBACKS[@]}))]}"
 fi
 
 echo "Comment: $COMMENT"

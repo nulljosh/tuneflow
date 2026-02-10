@@ -1,0 +1,94 @@
+#!/bin/bash
+# DJ control - start/stop auto-DJ
+# Usage: dj [start|stop|status]
+
+COMMAND="$1"
+PID_FILE="/tmp/auto-dj.pid"
+
+case "$COMMAND" in
+    start)
+        if [ -f "$PID_FILE" ]; then
+            OLD_PID=$(cat "$PID_FILE")
+            if kill -0 "$OLD_PID" 2>/dev/null; then
+                echo "❌ Auto-DJ already running (PID $OLD_PID)"
+                exit 1
+            fi
+        fi
+        
+        echo "🎧 Starting Auto-DJ..."
+        nohup bash ~/.openclaw/workspace/shortcuts/auto-dj-enhanced.sh > /tmp/auto-dj.log 2>&1 &
+        sleep 1
+        
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            echo "✅ Auto-DJ started (PID $PID)"
+            echo "Monitor: tail -f /tmp/auto-dj.log"
+        else
+            echo "❌ Failed to start"
+        fi
+        ;;
+    
+    stop)
+        if [ ! -f "$PID_FILE" ]; then
+            echo "❌ Auto-DJ not running"
+            exit 1
+        fi
+        
+        PID=$(cat "$PID_FILE")
+        if kill "$PID" 2>/dev/null; then
+            rm "$PID_FILE"
+            echo "🛑 Auto-DJ stopped"
+        else
+            echo "❌ Failed to stop (PID $PID not found)"
+            rm "$PID_FILE"
+        fi
+        ;;
+    
+    status)
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            if kill -0 "$PID" 2>/dev/null; then
+                echo "✅ Auto-DJ running (PID $PID)"
+                if [ -f "/tmp/auto-dj.log" ]; then
+                    echo ""
+                    echo "Recent activity:"
+                    tail -5 /tmp/auto-dj.log
+                fi
+            else
+                echo "❌ Auto-DJ not running (stale PID file)"
+                rm "$PID_FILE"
+            fi
+        else
+            echo "❌ Auto-DJ not running"
+        fi
+        ;;
+    
+    log)
+        if [ -f "/tmp/auto-dj.log" ]; then
+            tail -f /tmp/auto-dj.log
+        else
+            echo "❌ No log file"
+        fi
+        ;;
+    
+    *)
+        cat << 'USAGE'
+🎧 DJ Control
+
+Usage: dj [command]
+
+Commands:
+  start     Start auto-DJ (queues smart tracks automatically)
+  stop      Stop auto-DJ
+  status    Check if running
+  log       Watch live log
+
+Auto-DJ monitors what's playing, queues similar tracks (matching genre, loved/rated) 20 seconds before each song ends, and automatically creates smart playlists every 10 songs.
+
+Examples:
+  dj start
+  dj status
+  dj stop
+USAGE
+        ;;
+esac

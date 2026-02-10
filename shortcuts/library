@@ -1,0 +1,177 @@
+#!/bin/bash
+# Library browser - see what you can actually play
+# Usage: library [artists|albums|songs|playlists] [search term]
+
+COMMAND="$1"
+shift
+SEARCH="$*"
+
+case "$COMMAND" in
+    artists|artist)
+        osascript << EOF
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set artistList to {}
+    
+    repeat with aTrack in allTracks
+        try
+            set trackArtist to artist of aTrack
+            if trackArtist is not in artistList and trackArtist is not "" then
+                set end of artistList to trackArtist
+            end if
+        end try
+    end repeat
+    
+    -- Sort and display
+    set resultText to "🎤 Artists in your library (" & (count of artistList) & " total):" & return & return
+    
+    repeat with artistName in artistList
+        if "$SEARCH" is "" or artistName contains "$SEARCH" then
+            set resultText to resultText & "  • " & artistName & return
+        end if
+    end repeat
+    
+    return resultText
+end tell
+EOF
+        ;;
+    
+    albums|album)
+        osascript << EOF
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set albumList to {}
+    
+    repeat with aTrack in allTracks
+        try
+            set albumName to album of aTrack
+            set artistName to artist of aTrack
+            set albumKey to albumName & " - " & artistName
+            if albumKey is not in albumList and albumName is not "" then
+                set end of albumList to albumKey
+            end if
+        end try
+    end repeat
+    
+    set resultText to "💿 Albums in your library (" & (count of albumList) & " total):" & return & return
+    set displayCount to 0
+    
+    repeat with albumInfo in albumList
+        if "$SEARCH" is "" or albumInfo contains "$SEARCH" then
+            set resultText to resultText & "  • " & albumInfo & return
+            set displayCount to displayCount + 1
+            if displayCount >= 50 then
+                set resultText to resultText & return & "... and more (showing first 50)"
+                exit repeat
+            end if
+        end if
+    end repeat
+    
+    return resultText
+end tell
+EOF
+        ;;
+    
+    songs|song|search)
+        if [ -z "$SEARCH" ]; then
+            echo "Usage: library songs <search term>"
+            exit 1
+        fi
+        
+        osascript << EOF
+tell application "Music"
+    set searchResults to (search playlist "Library" for "$SEARCH")
+    set resultText to "🎵 Songs matching '$SEARCH':" & return & return
+    set trackCount to 0
+    
+    repeat with aTrack in searchResults
+        set trackCount to trackCount + 1
+        if trackCount > 25 then
+            set resultText to resultText & return & "... and more (showing first 25)"
+            exit repeat
+        end if
+        set resultText to resultText & trackCount & ". " & name of aTrack & " - " & artist of aTrack & return
+    end repeat
+    
+    if trackCount is 0 then
+        return "❌ No songs found matching '$SEARCH'"
+    else
+        return resultText & return & "Total: " & (count of searchResults) & " songs"
+    end if
+end tell
+EOF
+        ;;
+    
+    playlists|playlist)
+        osascript << 'EOF'
+tell application "Music"
+    set userPlaylists to (every user playlist whose special kind is none)
+    set resultText to "📋 Your playlists (" & (count of userPlaylists) & " total):" & return & return
+    
+    repeat with aPlaylist in userPlaylists
+        set playlistName to name of aPlaylist
+        set trackCount to count of tracks of aPlaylist
+        set resultText to resultText & "  • " & playlistName & " (" & trackCount & " songs)" & return
+    end repeat
+    
+    return resultText
+end tell
+EOF
+        ;;
+    
+    stats|info)
+        osascript << 'EOF'
+tell application "Music"
+    set allTracks to (get every track of playlist "Library")
+    set totalTracks to count of allTracks
+    
+    -- Count unique artists
+    set artistList to {}
+    repeat with aTrack in allTracks
+        try
+            set trackArtist to artist of aTrack
+            if trackArtist is not in artistList and trackArtist is not "" then
+                set end of artistList to trackArtist
+            end if
+        end try
+    end repeat
+    
+    -- Count playlists
+    set userPlaylists to (every user playlist whose special kind is none)
+    set playlistCount to count of userPlaylists
+    
+    set resultText to "📊 Library Stats:" & return & return
+    set resultText to resultText & "🎵 Total Songs: " & totalTracks & return
+    set resultText to resultText & "🎤 Unique Artists: " & (count of artistList) & return
+    set resultText to resultText & "📋 Playlists: " & playlistCount & return
+    
+    return resultText
+end tell
+EOF
+        ;;
+    
+    *)
+        cat << 'USAGE'
+📚 Library Browser - See What You Can Play
+
+Usage: library [command] [search]
+
+Commands:
+  artists [search]    List all artists (optionally filter)
+  albums [search]     List all albums (optionally filter)
+  songs <search>      Search for songs
+  playlists           List all playlists
+  stats               Library statistics
+
+Examples:
+  library artists           # All artists
+  library artists yeat      # Artists matching "yeat"
+  library albums cudi       # Albums with "cudi"
+  library songs everywhere  # Songs matching "everywhere"
+  library playlists         # All playlists
+  library stats             # Library overview
+
+💡 Tip: Only songs shown here can be played with 'music play'
+USAGE
+        ;;
+esac

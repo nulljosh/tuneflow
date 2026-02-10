@@ -1,0 +1,47 @@
+{
+  "fallback_chain": {
+    "description": "Local LLM fallback chain using Ollama models",
+    "created": "2026-02-09T22:00:00-08:00",
+    "models": [
+      {
+        "name": "mistral:latest",
+        "provider": "ollama",
+        "endpoint": "http://localhost:11434",
+        "priority": 1,
+        "notes": "Mistral 7B - Fast and capable general-purpose model"
+      },
+      {
+        "name": "llama2:latest",
+        "provider": "ollama",
+        "endpoint": "http://localhost:11434",
+        "priority": 2,
+        "notes": "Llama 2 - Meta's open-source model, good fallback option"
+      },
+      {
+        "name": "llama3.2:3b",
+        "provider": "ollama",
+        "endpoint": "http://localhost:11434",
+        "priority": 3,
+        "notes": "Already available - Llama 3.2 3B model"
+      },
+      {
+        "name": "qwen2.5:0.5b",
+        "provider": "ollama",
+        "endpoint": "http://localhost:11434",
+        "priority": 4,
+        "notes": "Already available - Lightweight Qwen model for basic tasks"
+      }
+    ],
+    "usage_notes": [
+      "Models are tried in priority order (lowest number first)",
+      "All models run locally via Ollama - no API keys required",
+      "Ollama must be running: ollama serve",
+      "Test a model: ollama run <model-name>",
+      "List available models: ollama list"
+    ],
+    "integration_example": {
+      "bash": "curl http://localhost:11434/api/generate -d '{\"model\": \"mistral:latest\", \"prompt\": \"Hello\"}'",
+      "python": "import ollama; response = ollama.chat(model='mistral:latest', messages=[{'role': 'user', 'content': 'Hello'}])"
+    }
+  }
+}

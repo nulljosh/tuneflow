@@ -9,6 +9,7 @@
 ## Who Joshua Is
 - **Joshua Trommel**
 - GitHub: nulljosh | Domain: heyitsmejosh.com
+- Goodreads: goodreads.com/user/show/62164337-joshua-trommel (214 books)
 - Phone: +17788462726
 - Timezone: America/Vancouver (PST)
 - Prefers tldr/eli5 answers, hates unnecessary steps
@@ -16,6 +17,14 @@
 - Family: Mom (+16042408966), Dad, Sarah, Ben (group chat)
 - Friends: TBD
 - Got burned by VibeCode credits/overcharging — wants to confront the creator about it
+
+**Reading interests:** Biography, Business, Classics, Comics, Fiction, Graphic novels, Humor, Music, Non-fiction, Poetry, Psychology, Romance, Science, Sci-fi, Young-adult
+
+**Favorite quotes:**
+- Bruce Lee: "Be water, my friend" (shapeless, formless)
+- Walt Whitman: "I am large, I contain multitudes"
+- Chuck Palahniuk: "The things you own end up owning you"
+- Nicholas Klein: "First they ignore you... then they build monuments to you"
 
 ## Setup
 - iMessage channel via imsg CLI, bot Apple ID: joshuatrommel680@gmail.com
@@ -28,6 +37,8 @@
 
 ## Projects
 - **WikiScroll** (v1.0.0) — TikTok for Wikipedia. React/Vite. Live at heyitsmejosh.com/wikiscroll/. Apple editorial design.
+- **Music Control System** (2026-02-09) — Comprehensive Apple Music CLI with 25+ commands, auto-DJ with intelligent queueing, and automatic playlist creation. Auto-queues similar tracks 20 seconds before song ends, creates "Auto Mix" playlists every 10 songs.
+- **Mac Automation Services** (2026-02-09) — Portfolio page + business launch. 3 service tiers (Bronze $200, Silver $500, Gold $1500). Marketing content prepared for Reddit, Twitter, HN, ProductHunt. Goal: $10k/month within 3 months.
 
 ## Preferences & Lessons
 - Look things up myself (contacts, files) before asking Joshua
@@ -35,10 +46,13 @@
 - Sub-agents for builds, quick replies for simple questions
 - Joshua sends rapid-fire — keep up, don't over-explain
 - Be proactive with tasks/reminders — read, remember, check in without being asked
+- **Read `/Users/joshua/CLAUDE.md` every session** — has custom commands, tasks, role, preferences
 
 ## Quick Commands
-- **/day** - Weather + tasks + calendar + news summary
-- **/molt** - Moltbook check (my stats + hot posts + feed)
+- **/day** - Weather + tasks + calendar + news summary (via `~/.local/bin/day`)
+- **/start** - Start bread dev server (`cd ~/Documents/Code/bread && npm run dev`)
+- **/grade** - Grade Apple Music playlist with honest feedback (A-F grading)
+- **stocks** - Check stock prices via mop terminal UI (`~/.local/bin/stocks`)
 
 ## Active Task Tracking
 - Read all Apple Reminders: ✅ (9 items tracked in tasks-and-reminders.md)
