@@ -1,0 +1,32 @@
+#!/bin/bash
+# calendar-week - Show next 7 days of events
+
+osascript << 'EOF'
+tell application "Calendar"
+  set today to current date
+  set startOfDay to today - (time of today)
+  set endDate to startOfDay + (7 * days)
+  
+  set eventList to {}
+  repeat with cal in calendars
+    try
+      set weekEvents to (every event of cal whose start date ≥ startOfDay and start date < endDate)
+      repeat with evt in weekEvents
+        try
+          set eventList to eventList & {(short date string of start date of evt) & " " & (time string of start date of evt) & " - " & (summary of evt)}
+        end try
+      end repeat
+    end try
+  end repeat
+  
+  if (count of eventList) = 0 then
+    return "📅 No events this week"
+  else
+    set output to "📅 Next 7 Days:\n"
+    repeat with evt in eventList
+      set output to output & "• " & evt & "\n"
+    end repeat
+    return output
+  end if
+end tell
+EOF

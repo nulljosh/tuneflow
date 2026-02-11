@@ -1,0 +1,26 @@
+#!/bin/bash
+# projects-uncommitted - Find repos with uncommitted changes
+
+cd ~/Documents/Code || exit 1
+
+echo "🔍 Repos with uncommitted changes:"
+echo ""
+
+found=0
+for dir in */; do
+  repo="${dir%/}"
+  if [ -d "$repo/.git" ]; then
+    cd "$repo"
+    if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]; then
+      found=1
+      echo "📝 $repo"
+      git status --short 2>/dev/null | head -10
+      echo ""
+    fi
+    cd ..
+  fi
+done
+
+if [ $found -eq 0 ]; then
+  echo "✓ All repos clean"
+fi

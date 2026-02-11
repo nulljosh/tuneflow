@@ -1,0 +1,32 @@
+#!/bin/bash
+# calendar-today - Show today's events
+
+osascript << 'EOF'
+tell application "Calendar"
+  set today to current date
+  set startOfDay to today - (time of today)
+  set endOfDay to startOfDay + (1 * days)
+  
+  set eventList to {}
+  repeat with cal in calendars
+    try
+      set todayEvents to (every event of cal whose start date ≥ startOfDay and start date < endOfDay)
+      repeat with evt in todayEvents
+        try
+          set eventList to eventList & {(summary of evt) & " @ " & (time string of start date of evt)}
+        end try
+      end repeat
+    end try
+  end repeat
+  
+  if (count of eventList) = 0 then
+    return "📅 No events today"
+  else
+    set output to "📅 Today's Events:\n"
+    repeat with evt in eventList
+      set output to output & "• " & evt & "\n"
+    end repeat
+    return output
+  end if
+end tell
+EOF

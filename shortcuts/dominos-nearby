@@ -1,0 +1,4 @@
+#!/bin/bash
+# dominos-nearby - Find closest Dominos stores
+
+~/.openclaw/workspace/skills/dominos/dominos stores 2>/dev/null | jq -r '.[] | "\(.StoreID) - \(.Phone) - \(.AddressDescription | gsub("\n"; ", ")) - Delivery: \(.ServiceMethodEstimatedWaitMinutes.Delivery.Min)-\(.ServiceMethodEstimatedWaitMinutes.Delivery.Max) min"' 2>/dev/null | head -3

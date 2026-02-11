@@ -1,0 +1,25 @@
+#!/bin/bash
+# journal-today - Open or create today's journal post
+
+DATE=$(date +%Y-%m-%d)
+JOURNAL_DIR="$HOME/Documents/Code/journal/_posts"
+POST="$JOURNAL_DIR/$DATE-daily.md"
+
+if [ -f "$POST" ]; then
+  echo "📝 Opening today's post..."
+  open "$POST"
+else
+  echo "📝 Creating today's post..."
+  cat > "$POST" << EOF
+---
+layout: post
+title: "$(date +%B\ %d,\ %Y)"
+date: $(date +%Y-%m-%d\ %H:%M:%S\ %z)
+categories: journal daily
+---
+
+## Today
+
+EOF
+  open "$POST"
+fi
