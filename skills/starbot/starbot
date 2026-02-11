@@ -41,6 +41,32 @@ const parseArgs = (args) => {
 const { flags, positional } = parseArgs(args);
 
 switch (command) {
+  case 'login': {
+    const email = flags.email || positional[0];
+    const password = flags.password || positional[1];
+    
+    if (!email || !password) {
+      console.error('Error: email and password required');
+      console.error('Usage: starbot login <email> <password>');
+      console.error('   or: starbot login --email you@example.com --password secret');
+      process.exit(1);
+    }
+    
+    console.log('🔐 Logging in to Starbucks...');
+    try {
+      const user = await api.login(email, password);
+      console.log('✓ Login successful');
+      console.log(`Welcome, ${user.name}`);
+      console.log(`Card: ***${user.cardNumber.slice(-4)}`);
+      console.log(`Balance: $${user.balance.toFixed(2)}`);
+      console.log(`Rewards: ⭐ ${user.rewards} stars`);
+    } catch (err) {
+      console.error('✗ Login failed:', err.message);
+      process.exit(1);
+    }
+    break;
+  }
+  
   case 'stores':
   case 'nearby': {
     const address = positional[0] || flags.address || config.defaultAddress || '20690 40 Ave, Langley, BC';
