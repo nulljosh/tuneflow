@@ -1,0 +1,179 @@
+#!/usr/bin/env node
+// dominos CLI - OpenClaw integration for Dominos Pizza API
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DOMINOS_PATH = join(process.env.HOME, 'Documents/Code/dominos/dominos.js');
+const CONFIG_PATH = join(__dirname, 'config.json');
+
+// Dynamic import from project
+const { DominosAPI } = await import(DOMINOS_PATH);
+
+// Load config
+let config = { region: 'ca' };
+try {
+  config = { ...config, ...JSON.parse(readFileSync(CONFIG_PATH, 'utf8')) };
+} catch {}
+
+const api = new DominosAPI({ region: config.region });
+
+const [,, command, ...args] = process.argv;
+
+// Parse flags
+const parseArgs = (args) => {
+  const flags = {};
+  const positional = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--')) {
+      const key = args[i].slice(2);
+      flags[key] = args[i + 1] || true;
+      i++;
+    } else {
+      positional.push(args[i]);
+    }
+  }
+  return { flags, positional };
+};
+
+const { flags, positional } = parseArgs(args);
+
+switch (command) {
+  case 'stores': {
+    const address = positional[0] || flags.address || config.defaultAddress;
+    if (!address) {
+      console.error('Error: Address required');
+      process.exit(1);
+    }
+    
+    const stores = await api.stores.find(address, flags.type);
+    console.log(JSON.stringify(stores.slice(0, 5), null, 2));
+    break;
+  }
+  
+  case 'menu': {
+    const storeId = flags.store;
+    if (!storeId) {
+      console.error('Error: --store required');
+      process.exit(1);
+    }
+    
+    const menu = await api.menu.get(storeId);
+    
+    if (flags.search) {
+      const results = api.menu.searchItems(menu, flags.search);
+      console.log(JSON.stringify(results, null, 2));
+    } else {
+      console.log(JSON.stringify(menu, null, 2));
+    }
+    break;
+  }
+  
+  case 'track': {
+    let tracker;
+    
+    if (flags.phone) {
+      tracker = await api.tracker.byPhone(flags.phone);
+    } else if (flags.store && flags.order) {
+      tracker = await api.tracker.byId(flags.store, flags.order);
+    } else if (config.defaultPhone) {
+      tracker = await api.tracker.byPhone(config.defaultPhone);
+    } else {
+      console.error('Error: --phone or (--store + --order) required');
+      process.exit(1);
+    }
+    
+    console.log(JSON.stringify(tracker, null, 2));
+    break;
+  }
+  
+  case 'order': {
+    const address = flags.address || config.defaultAddress;
+    const phone = flags.phone || config.defaultPhone;
+    const name = flags.name || config.defaultName;
+    
+    if (!address || !phone || !name) {
+      console.error('Error: --address, --phone, and --name required (or set in config)');
+      process.exit(1);
+    }
+    
+    // Find stores
+    const stores = await api.stores.find(address);
+    if (stores.length === 0) {
+      console.error('Error: No stores found near address');
+      process.exit(1);
+    }
+    
+    const store = stores[0];
+    console.error(`Using store: ${store.StoreID} - ${store.AddressDescription}`);
+    
+    // Create order
+    const order = api.createOrder();
+    
+    // Parse address
+    const [street, ...rest] = address.split(',').map(s => s.trim());
+    const postalCode = rest.pop();
+    const region = rest.pop();
+    const city = rest.join(', ');
+    
+    order
+      .setAddress({ street, city, region, postalCode })
+      .setStore(store.StoreID)
+      .setCustomer({ 
+        firstName: name.split(' ')[0], 
+        lastName: name.split(' ')[1] || 'D',
+        email: flags.email || 'test@example.com',
+        phone 
+      });
+    
+    // Add products
+    if (flags.pizza) {
+      order.addProduct(flags.pizza, flags.quantity || 1);
+    }
+    
+    if (flags.coupon) {
+      order.addCoupon(flags.coupon);
+    }
+    
+    // Validate and price
+    const validated = await order.validate();
+    if (validated.Status !== 1) {
+      console.error('Validation failed:', validated.StatusItems);
+      process.exit(1);
+    }
+    
+    const priced = await order.price();
+    console.log('Order Details:', JSON.stringify({
+      items: priced.Order.Products,
+      coupons: priced.Order.Coupons,
+      total: priced.Order.Amounts.Customer
+    }, null, 2));
+    
+    if (!flags.confirm) {
+      console.log('\nAdd --confirm to place the order (requires payment info)');
+      process.exit(0);
+    }
+    
+    // Place order (would need payment info)
+    console.error('Payment integration not implemented - order not placed');
+    break;
+  }
+  
+  default:
+    console.log('Usage: dominos <command> [options]');
+    console.log('');
+    console.log('Commands:');
+    console.log('  stores <address>         Find nearby stores');
+    console.log('  menu --store <id>        Browse menu');
+    console.log('  track --phone <number>   Track order');
+    console.log('  order --pizza <code>     Create order (dry-run)');
+    console.log('');
+    console.log('Examples:');
+    console.log('  dominos stores "123 Main St, Vancouver"');
+    console.log('  dominos menu --store 8396 --search pepperoni');
+    console.log('  dominos track --phone 6045342277');
+    console.log('  dominos order --pizza 14SCREEN --coupon 9193');
+    process.exit(1);
+}
