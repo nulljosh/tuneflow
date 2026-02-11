@@ -1,0 +1,15 @@
+{
+  "customer": {
+    "firstName": "Joshua",
+    "lastName": "Trommel",
+    "email": "joshuatrommel680@gmail.com",
+    "phone": "6045342277"
+  },
+  "address": {
+    "street": "20690 40 Ave",
+    "city": "Langley",
+    "region": "BC",
+    "postalCode": "V3A2X7"
+  },
+  "preferredStore": "10090"
+}
