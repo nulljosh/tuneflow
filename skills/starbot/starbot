@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+// starbot CLI - OpenClaw integration for Starbucks
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const STARBOT_PATH = join(process.env.HOME, 'Documents/Code/starbot/starbot.js');
+const CONFIG_PATH = join(__dirname, 'config.json');
+
+// Dynamic import
+const { StarbotAPI } = await import(STARBOT_PATH);
+
+// Load config
+let config = {};
+try {
+  config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+} catch {}
+
+const api = new StarbotAPI();
+
+const [,, command, ...args] = process.argv;
+
+// Parse flags
+const parseArgs = (args) => {
+  const flags = {};
+  const positional = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--')) {
+      const key = args[i].slice(2);
+      flags[key] = args[i + 1] || true;
+      i++;
+    } else {
+      positional.push(args[i]);
+    }
+  }
+  return { flags, positional };
+};
+
+const { flags, positional } = parseArgs(args);
+
+switch (command) {
+  case 'stores':
+  case 'nearby': {
+    const address = positional[0] || flags.address || config.defaultAddress || '20690 40 Ave, Langley, BC';
+    const limit = flags.limit || 5;
+    
+    const result = await api.stores(address, limit);
+    
+    console.log(`☕ Starbucks near ${address}:\n`);
+    for (const store of result.stores.slice(0, limit)) {
+      console.log(`📍 ${store.name}`);
+      console.log(`   ${store.address}`);
+      console.log(`   Distance: ${store.distance} | ${store.hours}`);
+      console.log(`   Features: ${store.features.join(', ')}\n`);
+    }
+    break;
+  }
+  
+  case 'balance': {
+    const cardNumber = flags.card || config.cardNumber;
+    const pin = flags.pin || config.pin;
+    
+    if (!cardNumber || !pin) {
+      console.error('Error: --card and --pin required (or save in config)');
+      process.exit(1);
+    }
+    
+    const result = await api.cardBalance(cardNumber, pin);
+    console.log('💳 Starbucks Card');
+    console.log(`Balance: $${result.balance.toFixed(2)}`);
+    console.log(`Rewards: ⭐ ${result.rewards} stars`);
+    console.log(`Card: ***${result.cardNumber}`);
+    break;
+  }
+  
+  case 'reload': {
+    const cardNumber = flags.card || config.cardNumber;
+    const amount = parseFloat(flags.amount);
+    
+    if (!cardNumber || !amount) {
+      console.error('Error: --card and --amount required');
+      process.exit(1);
+    }
+    
+    console.log(`💰 Reloading card with $${amount.toFixed(2)}...`);
+    const result = await api.reload(cardNumber, amount, { type: 'CreditCard' });
+    
+    if (result.success) {
+      console.log(`✓ Reload successful`);
+      console.log(`New balance: $${result.newBalance.toFixed(2)}`);
+      console.log(`Transaction: ${result.transaction}`);
+    } else {
+      console.error('✗ Reload failed');
+    }
+    break;
+  }
+  
+  default:
+    console.log('Usage: starbot <command> [options]');
+    console.log('');
+    console.log('Commands:');
+    console.log('  stores [address]        Find nearby Starbucks');
+    console.log('  nearby                  Find nearby (uses default address)');
+    console.log('  balance                 Check card balance + rewards');
+    console.log('  reload --amount <$>     Reload card');
+    console.log('');
+    console.log('Examples:');
+    console.log('  starbot stores "123 Main St"');
+    console.log('  starbot balance --card 1234567890123456 --pin 1234');
+    console.log('  starbot reload --amount 25');
+    process.exit(1);
+}
