@@ -1,2 +1,6 @@
 [0;34m[INFO][0m Running one-time check
 [0;34m[INFO][0m Significant changes detected
+[0;34m[INFO][0m Commit message: ✅ test: Add/update tests + docs
+[0;32m[OK][0m Changes committed
+[1;33m[WARN][0m Push failed - trying with --force-with-lease
+[0;31m[ERROR][0m Failed to push changes

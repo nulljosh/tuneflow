@@ -1,0 +1,33 @@
+#!/bin/bash
+# tweet-to-project: Analyze tweet screenshot and create project implementation
+
+SCREENSHOT="$1"
+OUTPUT_DIR="$HOME/Documents/Code/tweet-projects"
+
+if [ -z "$SCREENSHOT" ]; then
+  echo "Usage: tweet-to-project <screenshot-path>"
+  echo "Or: Send tweet screenshot via iMessage and I'll analyze it automatically"
+  exit 1
+fi
+
+# Create project directory
+TIMESTAMP=$(date +%s)
+SLUG="tweet-$(basename "$SCREENSHOT" | sed 's/\.[^.]*$//')"
+PROJECT_DIR="$OUTPUT_DIR/$SLUG"
+
+mkdir -p "$PROJECT_DIR"
+
+echo "Analyzing tweet screenshot..."
+echo "Project dir: $PROJECT_DIR"
+echo ""
+echo "Screenshot: $SCREENSHOT"
+echo ""
+echo "✓ Created project directory"
+echo ""
+echo "Next: OpenClaw will analyze the screenshot and generate:"
+echo "  - IDEA.md (implementation plan)"
+echo "  - Tech stack recommendations"
+echo "  - MVP scope"
+echo "  - Effort estimate"
+echo ""
+echo "Just send the screenshot path to OpenClaw"

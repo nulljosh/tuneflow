@@ -1,0 +1,44 @@
+#!/bin/bash
+# Install Code Runner as a cron job
+# Usage: ./install-code-runner [--interval 5|30|60]
+
+INTERVAL=${1:-5}  # Default 5 minutes
+MONITOR_CLI="$HOME/.openclaw/workspace/shortcuts/code-monitor"
+RUNNER_CLI="$HOME/.openclaw/workspace/shortcuts/code-runner"
+LOG_DIR="$HOME/.openclaw/workspace/logs"
+
+# Create log directory
+mkdir -p "$LOG_DIR"
+
+# Ensure scripts are executable
+chmod +x "$MONITOR_CLI"
+chmod +x "$RUNNER_CLI"
+
+# Add cron job
+CRON_CMD="${MONITOR_CLI} --once --limit 20"
+CRON_LOG="${LOG_DIR}/code-runner.log"
+CRON_SCHEDULE="*/${INTERVAL} * * * * $CRON_CMD >> $CRON_LOG 2>&1"
+
+# Check if already installed
+if crontab -l 2>/dev/null | grep -q "code-monitor"; then
+    echo "❌ Code runner cron job already installed"
+    echo "To remove: crontab -e and delete the line containing 'code-monitor'"
+    exit 1
+fi
+
+# Install cron job
+(crontab -l 2>/dev/null || echo ""; echo "$CRON_SCHEDULE") | crontab - || {
+    echo "❌ Failed to install cron job"
+    exit 1
+}
+
+echo "✅ Code runner cron job installed"
+echo "   Runs every ${INTERVAL} minutes"
+echo "   Log: $CRON_LOG"
+echo ""
+echo "To remove:"
+echo "  crontab -e"
+echo "  Delete the line with 'code-monitor'"
+echo ""
+echo "To view logs:"
+echo "  tail -f $CRON_LOG"

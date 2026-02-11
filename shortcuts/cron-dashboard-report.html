@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Job Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1419;
+      color: #e6edf3;
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; color: #58a6ff; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+    .stat-value { font-size: 28px; font-weight: bold; color: #58a6ff; }
+    .stat-label { font-size: 12px; color: #8b949e; margin-top: 5px; }
+    .jobs-list { display: grid; gap: 12px; }
+    .job-card {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      transition: border-color 0.2s;
+    }
+    .job-card:hover { border-color: #58a6ff; }
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .job-name { font-size: 16px; font-weight: 600; color: #58a6ff; }
+    .job-status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-enabled { background: #238636; color: white; }
+    .status-disabled { background: #444c56; color: white; }
+    .job-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
+    .info-item { display: flex; flex-direction: column; }
+    .info-label { color: #8b949e; font-size: 11px; }
+    .info-value { color: #79c0ff; margin-top: 2px; }
+    .last-run-ok { color: #3fb950; }
+    .last-run-error { color: #f85149; }
+    .payload { 
+      margin-top: 10px; 
+      padding: 10px; 
+      background: #161b22; 
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #79c0ff;
+      max-height: 100px;
+      overflow: auto;
+    }
+    .refresh-time { color: #8b949e; font-size: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏰ Cron Job Dashboard</h1>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value">21</div>
+        <div class="stat-label">Total Jobs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">14</div>
+        <div class="stat-label">Enabled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">13</div>
+        <div class="stat-label">Last Run OK</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Last Run Error</div>
+      </div>
+    </div>
+    
+    <div class="jobs-list">
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">VibeCode reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 2/4/2025, 9:20:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 4, 2026, 07:22:07 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Reminder: Joshua wanted to confront the VibeCode creator about overcharging / ...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Lost glasses reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 2/4/2026, 9:00:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 4, 2026, 09:01:24 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">10ms</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Reminder: Joshua lost his glasses. Ask if he found them yet.</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Morning briefing</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 09:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 11, 2026, 09:00:00 AM (20h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 10, 2026, 09:00:00 AM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">110324ms</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Good morning briefing time! Pull together:
+
+🌤️ Weather: Get current + week fo...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Call Air Canada about glasses</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 2/5/2025, 6:40:00 AM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 4, 2026, 09:24:23 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Reminder: Call Air Canada about your lost glasses! Lost & Found: 1-888-247-226...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Steven Page concert reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 3/10/2025, 1:00:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 7, 2026, 08:32:08 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">25216ms</span>
+            </div>
+          </div>
+          <div class="payload">🎵 Reminder: Steven Page concert at Hard Rock Cafe Coquitlam is in 3 days (March...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Daily: Phone Bill Reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 18:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 7, 2026, 06:00:00 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">9ms</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Daily reminder: Pay phone bill (you're without data - handle ASAP!)</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Daily: VISA Call Reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 18:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 7, 2026, 06:00:00 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">⏰ Daily reminder: Call VISA about outstanding issue</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Security patches reminder</span>
+            <span class="job-status status-disabled">
+              ⏸️ Disabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 2/7/2026, 4:10:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 7, 2026, 04:10:00 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">9ms</span>
+            </div>
+          </div>
+          <div class="payload">REMINDER: Fix pending security patches for Ideasia (AI rate limiting, Stripe web...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Steven Page concert - 1 week reminder</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 3/6/2026, 6:00:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Mar 6, 2026, 06:00:00 PM (24d 5h)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">🎵 Reminder: Steven Page concert at Hard Rock Cafe Coquitlam is in 1 week (March...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Steven Page concert - 3 days reminder</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 3/10/2026, 7:00:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Mar 10, 2026, 07:00:00 PM (28d 5h)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">🎵 Reminder: Steven Page concert at Hard Rock Cafe Coquitlam is in 3 days (March...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Steven Page concert - tomorrow</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 3/12/2026, 7:00:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Mar 12, 2026, 07:00:00 PM (30d 5h)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">🎵 Reminder: Steven Page concert TOMORROW (March 13) at Hard Rock Cafe Coquitlam...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Usage reset notification</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 15:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 03:00:00 PM (2h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 9, 2026, 03:00:00 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">9530ms</span>
+            </div>
+          </div>
+          <div class="payload">Usage reset reminder: Token quota refreshed for the day (200k tokens available)....</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Afternoon Check-in</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 15:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 03:00:00 PM (2h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">Afternoon check (3pm): Any urgent items to mention. If nothing, just update memo...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Evening Summary</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 21:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 09:00:00 PM (8h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">Evening summary (9pm): Today's wins, tomorrow's calendar, any prep needed. Keep ...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Calendar Monitor</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every 4h 0m</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 02:59:56 PM (2h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 10, 2026, 06:59:56 AM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">649261ms</span>
+            </div>
+          </div>
+          <div class="payload">Check calendar for events in next 24h. If event <2h away, send reminder. Otherwi...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Moltbook suspension check</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Once at: 2/10/2026, 1:12:00 PM</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 01:12:00 PM (1h 4m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">Check if Moltbook suspension lifted: curl -s 'https://www.moltbook.com/api/v1/ag...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">Dominic Fike Vancouver ticket check</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 09:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 11, 2026, 09:00:00 AM (20h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 10, 2026, 09:01:50 AM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">15563ms</span>
+            </div>
+          </div>
+          <div class="payload">Check Ticketmaster Canada for Dominic Fike tickets in Vancouver/BC. Open https:/...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">send-fun-images</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every 30m</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 12:21:48 PM (14m 0s)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 10, 2026, 11:51:48 AM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">27594ms</span>
+            </div>
+          </div>
+          <div class="payload">Send Joshua a fun/random image using send-image script. Pick something funny, in...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">send-jokes</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every 10m</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 12:13:01 PM (5m 13s)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-ok">Feb 10, 2026, 12:03:01 PM [ok]</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">17172ms</span>
+            </div>
+          </div>
+          <div class="payload">Send Joshua a funny programmer joke via iMessage (+17788462726). Keep it witty a...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">hawaii-morning-mom</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 08:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 11, 2026, 08:00:00 AM (19h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">Send mom (+16042408966) a Hawaii coast/beach/ocean pic. Use send-image script. D...</div>
+        </div>
+      
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">hawaii-evening-mom</span>
+            <span class="job-status status-enabled">
+              ✅ Enabled
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">Every: 18:00 (America/Vancouver)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">Feb 10, 2026, 06:00:00 PM (5h 52m)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value last-run-error">Never</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">N/A</span>
+            </div>
+          </div>
+          <div class="payload">Send mom (+16042408966) a Hawaii sunset/golden hour pic. Use send-image script. ...</div>
+        </div>
+      
+    </div>
+    
+    <div class="refresh-time">Last updated: 2/10/2026, 12:07:47 PM</div>
+  </div>
+</body>
+</html>

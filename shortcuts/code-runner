@@ -1,0 +1,211 @@
+#!/usr/bin/env node
+
+/**
+ * Code Runner CLI - Execute Python, Node, C, SQL, Bash
+ * Usage: code-runner --type python --format json < code.py
+ *        echo "print('hello')" | code-runner --type python
+ *        code-runner --type sql "SELECT * FROM users"
+ */
+
+const fs = require("fs");
+const path = require("path");
+const { execSync, spawn } = require("child_process");
+const readline = require("readline");
+
+const MAX_OUTPUT = 8000; // iMessage friendly
+const MAX_RUNTIME = 30000; // 30s timeout
+
+class CodeRunner {
+  constructor(type = "python", format = "text") {
+    this.type = type;
+    this.format = format;
+    this.startTime = Date.now();
+  }
+
+  async run(code) {
+    if (!code || !code.trim()) {
+      return this.result(false, "", "Empty code");
+    }
+
+    try {
+      switch (this.type) {
+        case "python":
+        case "py":
+          return await this.runPython(code);
+        case "node":
+        case "js":
+          return await this.runNode(code);
+        case "c":
+          return await this.runC(code);
+        case "sql":
+          return await this.runSQL(code);
+        case "bash":
+        case "sh":
+          return await this.runBash(code);
+        default:
+          return this.result(false, "", `Unknown type: ${this.type}`);
+      }
+    } catch (e) {
+      return this.result(false, "", e.message);
+    }
+  }
+
+  async runPython(code) {
+    return this.execCmd("python3", ["-u", "-c", code]);
+  }
+
+  async runNode(code) {
+    return this.execCmd("node", ["-e", code]);
+  }
+
+  async runC(code) {
+    const tmpDir = require("os").tmpdir();
+    const rand = Date.now();
+    const srcFile = path.join(tmpDir, `code_${rand}.c`);
+    const outFile = path.join(tmpDir, `code_${rand}`);
+
+    try {
+      fs.writeFileSync(srcFile, code);
+
+      // Compile
+      try {
+        execSync(`gcc -o ${outFile} ${srcFile}`, { encoding: "utf8" });
+      } catch (e) {
+        fs.unlinkSync(srcFile);
+        return this.result(false, "", `Compilation failed: ${e.stderr || e.message}`);
+      }
+
+      // Run
+      const res = await this.execCmd(outFile, []);
+      fs.unlinkSync(srcFile);
+      fs.unlinkSync(outFile);
+      return res;
+    } catch (e) {
+      return this.result(false, "", e.message);
+    }
+  }
+
+  async runSQL(query) {
+    const dbFile = path.join(require("os").tmpdir(), "runner.db");
+    return this.execCmd("sqlite3", [dbFile, query]);
+  }
+
+  async runBash(script) {
+    return this.execCmd("bash", ["-c", script]);
+  }
+
+  execCmd(cmd, args) {
+    return new Promise((resolve) => {
+      try {
+        const output = execSync(`${cmd} ${args.map((a) => `'${a.replace(/'/g, "'\\''")}'`).join(" ")}`, {
+          encoding: "utf8",
+          timeout: MAX_RUNTIME,
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+
+        const trimmed = output.trim();
+        resolve(this.result(true, trimmed));
+      } catch (e) {
+        const stderr = e.stderr ? e.stderr.toString().trim() : e.message;
+        const stdout = e.stdout ? e.stdout.toString().trim() : "";
+        resolve(this.result(false, stdout, stderr));
+      }
+    });
+  }
+
+  result(success, output = "", error = "") {
+    let out = output;
+    let truncAt = 0;
+
+    if (output.length > MAX_OUTPUT) {
+      out = output.substring(0, MAX_OUTPUT);
+      truncAt = output.length;
+    }
+
+    const res = {
+      success,
+      output: out,
+      runtime: `${Date.now() - this.startTime}ms`,
+      type: this.type,
+    };
+
+    if (error) res.error = error;
+    if (truncAt) res.truncAt = truncAt;
+
+    return res;
+  }
+
+  formatOutput(result) {
+    if (this.format === "json") {
+      return JSON.stringify(result, null, 2);
+    }
+
+    // Text format
+    if (result.success) {
+      let text = result.output;
+      if (result.truncAt) {
+        text += `\n\n[Output truncated - original size: ${result.truncAt} bytes]`;
+      }
+      return text;
+    } else {
+      let text = `Error (${result.type}): ${result.error}`;
+      if (result.output) {
+        text += `\n\nOutput:\n${result.output}`;
+      }
+      return text;
+    }
+  }
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  let type = "python";
+  let format = "text";
+  let code = "";
+  let inputFile = null;
+
+  // Parse args
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--type") type = args[++i];
+    else if (args[i] === "--format") format = args[++i];
+    else if (args[i] === "--file") inputFile = args[++i];
+    else if (!args[i].startsWith("--")) code = args[i];
+  }
+
+  // Read input
+  if (!code) {
+    if (inputFile) {
+      code = fs.readFileSync(inputFile, "utf8");
+    } else {
+      // Read from stdin
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false,
+      });
+
+      const lines = [];
+      for await (const line of rl) {
+        lines.push(line);
+      }
+      code = lines.join("\n");
+    }
+  }
+
+  const runner = new CodeRunner(type, format);
+  const result = await runner.run(code);
+  const output = runner.formatOutput(result);
+
+  if (result.success) {
+    console.log(output);
+    process.exit(0);
+  } else {
+    console.error(output);
+    process.exit(1);
+  }
+}
+
+main().catch((e) => {
+  console.error("Fatal:", e.message);
+  process.exit(1);
+});

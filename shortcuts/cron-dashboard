@@ -1,0 +1,567 @@
+#!/usr/bin/env node
+
+/**
+ * Cron Job Dashboard
+ * Monitor all active cron jobs from the gateway config
+ * Shows: job name, schedule, next run, last run + status, payload
+ */
+
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+const CRON_CONFIG = path.join(os.homedir(), '.openclaw/cron/jobs.json');
+const CRON_LOG_DIR = path.join(os.homedir(), '.openclaw/cron-logs');
+
+// Ensure log directory exists
+if (!fs.existsSync(CRON_LOG_DIR)) {
+  fs.mkdirSync(CRON_LOG_DIR, { recursive: true });
+}
+
+/**
+ * Parse cron expression to human-readable format
+ */
+function parseCronExpr(expr, tz) {
+  // Simple cron expression parser
+  const parts = expr.split(' ');
+  if (parts.length < 5) return expr;
+
+  const [min, hour, day, month, dow] = parts;
+  const cronTz = tz || 'UTC';
+
+  // Map cron fields to human-readable
+  const descriptions = [];
+  
+  if (min !== '*' && hour !== '*') {
+    descriptions.push(`${hour.padStart(2, '0')}:${min.padStart(2, '0')}`);
+  } else if (hour !== '*') {
+    descriptions.push(`Every hour at minute ${min}`);
+  } else if (min !== '*') {
+    descriptions.push(`Every ${min} minutes`);
+  }
+
+  if (day !== '*' && day !== '?') {
+    descriptions.push(`day ${day}`);
+  }
+  if (month !== '*') {
+    descriptions.push(`month ${month}`);
+  }
+  if (dow !== '*' && dow !== '?') {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dowList = dow.split(',').map(d => days[d] || `dow(${d})`);
+    descriptions.push(`${dowList.join(',')}`);
+  }
+
+  return descriptions.length > 0 ? descriptions.join(' ') : expr;
+}
+
+/**
+ * Format timestamp to readable format
+ */
+function formatTime(ms) {
+  if (!ms) return 'Never';
+  const date = new Date(ms);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+
+/**
+ * Calculate time until next run
+ */
+function timeUntil(nextRunMs) {
+  if (!nextRunMs) return '—';
+  
+  const now = Date.now();
+  const diff = nextRunMs - now;
+  
+  if (diff < 0) return 'Past due';
+  
+  const hours = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days}d ${hours % 24}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  } else if (mins > 0) {
+    return `${mins}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+/**
+ * Get schedule description
+ */
+function getScheduleDesc(job) {
+  const sched = job.schedule;
+  
+  switch (sched.kind) {
+    case 'cron':
+      return `Every: ${parseCronExpr(sched.expr, sched.tz)} (${sched.tz || 'UTC'})`;
+    case 'at':
+      return `Once at: ${new Date(sched.at).toLocaleString()}`;
+    case 'every':
+      const mins = Math.floor(sched.everyMs / 60000);
+      const hours = Math.floor(mins / 60);
+      return `Every ${hours > 0 ? `${hours}h ${mins % 60}m` : `${mins}m`}`;
+    default:
+      return sched.kind;
+  }
+}
+
+/**
+ * Get payload description
+ */
+function getPayloadDesc(payload) {
+  if (!payload) return '';
+  
+  if (payload.kind === 'systemEvent' && payload.text) {
+    return payload.text.substring(0, 80) + (payload.text.length > 80 ? '...' : '');
+  } else if (payload.kind === 'agentTurn' && payload.message) {
+    return payload.message.substring(0, 80) + (payload.message.length > 80 ? '...' : '');
+  }
+  
+  return JSON.stringify(payload).substring(0, 80);
+}
+
+/**
+ * Load jobs from config
+ */
+function loadJobs() {
+  try {
+    const content = fs.readFileSync(CRON_CONFIG, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    console.error(`❌ Failed to read cron config: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+/**
+ * Display table format
+ */
+function displayTable(jobs, options = {}) {
+  const { enabled = null, detailed = false } = options;
+  
+  let filtered = jobs.filter(j => enabled === null || j.enabled === enabled);
+  
+  if (filtered.length === 0) {
+    console.log('ℹ️  No cron jobs found.');
+    return;
+  }
+  
+  console.log(`\n📋 Cron Jobs (${filtered.length} total, ${jobs.filter(j => j.enabled).length} enabled)\n`);
+  
+  filtered.forEach((job, idx) => {
+    const status = job.enabled ? '✅' : '⏸️ ';
+    const lastStatus = job.state?.lastStatus === 'ok' ? '✓' : job.state?.lastStatus === 'error' ? '✗' : '—';
+    const nextIn = timeUntil(job.state?.nextRunAtMs);
+    
+    console.log(`${status} [${idx + 1}] ${job.name}`);
+    console.log(`   Schedule: ${getScheduleDesc(job)}`);
+    console.log(`   Next run: ${job.state?.nextRunAtMs ? formatTime(job.state.nextRunAtMs) + ` (${nextIn})` : 'Not scheduled'}`);
+    console.log(`   Last run: ${job.state?.lastRunAtMs ? formatTime(job.state.lastRunAtMs) + ` [${lastStatus}]` : 'Never'}`);
+    if (job.state?.lastDurationMs) {
+      console.log(`   Duration: ${job.state.lastDurationMs}ms`);
+    }
+    console.log(`   Agent: ${job.agentId}, Target: ${job.sessionTarget}, Wake: ${job.wakeMode}`);
+    
+    if (detailed) {
+      console.log(`   Payload: ${getPayloadDesc(job.payload)}`);
+      if (job.deleteAfterRun) {
+        console.log(`   ⚠️  Delete after run`);
+      }
+    }
+    
+    console.log();
+  });
+}
+
+/**
+ * Display detailed view for a specific job
+ */
+function displayJob(jobs, nameOrId) {
+  const job = jobs.find(j => 
+    j.id === nameOrId || j.name.toLowerCase().includes(nameOrId.toLowerCase())
+  );
+  
+  if (!job) {
+    console.error(`❌ Job not found: ${nameOrId}`);
+    process.exit(1);
+  }
+  
+  console.log(`\n📌 Job: ${job.name}\n`);
+  console.log(`ID: ${job.id}`);
+  console.log(`Status: ${job.enabled ? '✅ Enabled' : '⏸️  Disabled'}`);
+  console.log(`Agent: ${job.agentId}`);
+  console.log(`Session Target: ${job.sessionTarget}`);
+  console.log(`Wake Mode: ${job.wakeMode}`);
+  console.log(`\n⏱️  Schedule:`);
+  console.log(`  ${getScheduleDesc(job)}`);
+  
+  if (job.state?.nextRunAtMs) {
+    console.log(`\n⏳ Next Run: ${formatTime(job.state.nextRunAtMs)}`);
+    console.log(`  In: ${timeUntil(job.state.nextRunAtMs)}`);
+  }
+  
+  if (job.state?.lastRunAtMs) {
+    console.log(`\n📊 Last Run: ${formatTime(job.state.lastRunAtMs)}`);
+    console.log(`  Status: ${job.state.lastStatus || 'unknown'}`);
+    if (job.state.lastDurationMs) {
+      console.log(`  Duration: ${job.state.lastDurationMs}ms`);
+    }
+  }
+  
+  console.log(`\n📦 Payload:\n`);
+  console.log(JSON.stringify(job.payload, null, 2));
+  
+  if (job.deleteAfterRun) {
+    console.log(`\n⚠️  This job will be deleted after it runs.`);
+  }
+  
+  console.log();
+}
+
+/**
+ * Watch mode - updates every N seconds
+ */
+function watchJobs(jobs, interval = 5) {
+  console.clear();
+  
+  const watch = () => {
+    try {
+      const updated = loadJobs();
+      console.clear();
+      displayTable(updated.jobs, { detailed: false });
+      console.log(`🔄 Refreshing in ${interval}s... (Ctrl+C to exit)\n`);
+    } catch (err) {
+      console.error(`Error refreshing: ${err.message}`);
+    }
+  };
+  
+  watch();
+  setInterval(watch, interval * 1000);
+}
+
+/**
+ * Show statistics
+ */
+function showStats(jobs) {
+  const enabled = jobs.filter(j => j.enabled).length;
+  const disabled = jobs.filter(j => !j.enabled).length;
+  const successCount = jobs.filter(j => j.state?.lastStatus === 'ok').length;
+  const errorCount = jobs.filter(j => j.state?.lastStatus === 'error').length;
+  
+  console.log(`\n📈 Cron Job Statistics\n`);
+  console.log(`Total Jobs: ${jobs.length}`);
+  console.log(`  ✅ Enabled: ${enabled}`);
+  console.log(`  ⏸️  Disabled: ${disabled}`);
+  console.log(`\nExecution History:`);
+  console.log(`  ✓ Successful: ${successCount}`);
+  console.log(`  ✗ Failed: ${errorCount}`);
+  console.log(`  — Never run: ${jobs.filter(j => !j.state?.lastRunAtMs).length}`);
+  
+  // Next run timeline
+  const nextRuns = jobs
+    .filter(j => j.state?.nextRunAtMs)
+    .sort((a, b) => a.state.nextRunAtMs - b.state.nextRunAtMs)
+    .slice(0, 5);
+  
+  if (nextRuns.length > 0) {
+    console.log(`\n⏳ Next 5 Runs:`);
+    nextRuns.forEach((job, idx) => {
+      console.log(`  ${idx + 1}. ${job.name} — ${formatTime(job.state.nextRunAtMs)}`);
+    });
+  }
+  
+  console.log();
+}
+
+/**
+ * JSON export
+ */
+function exportJSON(jobs, pretty = false) {
+  const output = pretty ? JSON.stringify(jobs, null, 2) : JSON.stringify(jobs);
+  console.log(output);
+}
+
+/**
+ * CSV export
+ */
+function exportCSV(jobs) {
+  const headers = [
+    'Name',
+    'Enabled',
+    'Schedule Type',
+    'Schedule Expression',
+    'Next Run',
+    'Last Run',
+    'Last Status',
+    'Duration (ms)',
+    'Agent',
+    'Session Target'
+  ];
+  
+  console.log(headers.join(','));
+  
+  jobs.forEach(job => {
+    const row = [
+      `"${job.name.replace(/"/g, '""')}"`,
+      job.enabled ? 'Yes' : 'No',
+      job.schedule.kind,
+      job.schedule.expr || job.schedule.at || job.schedule.everyMs,
+      job.state?.nextRunAtMs ? `"${formatTime(job.state.nextRunAtMs)}"` : '',
+      job.state?.lastRunAtMs ? `"${formatTime(job.state.lastRunAtMs)}"` : '',
+      job.state?.lastStatus || '',
+      job.state?.lastDurationMs || '',
+      job.agentId,
+      job.sessionTarget
+    ];
+    console.log(row.join(','));
+  });
+}
+
+/**
+ * HTML report
+ */
+function generateHTML(jobs) {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Job Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1419;
+      color: #e6edf3;
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; color: #58a6ff; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+    .stat-value { font-size: 28px; font-weight: bold; color: #58a6ff; }
+    .stat-label { font-size: 12px; color: #8b949e; margin-top: 5px; }
+    .jobs-list { display: grid; gap: 12px; }
+    .job-card {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      transition: border-color 0.2s;
+    }
+    .job-card:hover { border-color: #58a6ff; }
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .job-name { font-size: 16px; font-weight: 600; color: #58a6ff; }
+    .job-status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-enabled { background: #238636; color: white; }
+    .status-disabled { background: #444c56; color: white; }
+    .job-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
+    .info-item { display: flex; flex-direction: column; }
+    .info-label { color: #8b949e; font-size: 11px; }
+    .info-value { color: #79c0ff; margin-top: 2px; }
+    .last-run-ok { color: #3fb950; }
+    .last-run-error { color: #f85149; }
+    .payload { 
+      margin-top: 10px; 
+      padding: 10px; 
+      background: #161b22; 
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #79c0ff;
+      max-height: 100px;
+      overflow: auto;
+    }
+    .refresh-time { color: #8b949e; font-size: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏰ Cron Job Dashboard</h1>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value">${jobs.length}</div>
+        <div class="stat-label">Total Jobs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${jobs.filter(j => j.enabled).length}</div>
+        <div class="stat-label">Enabled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${jobs.filter(j => j.state?.lastStatus === 'ok').length}</div>
+        <div class="stat-label">Last Run OK</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${jobs.filter(j => j.state?.lastStatus === 'error').length}</div>
+        <div class="stat-label">Last Run Error</div>
+      </div>
+    </div>
+    
+    <div class="jobs-list">
+      ${jobs.map(job => `
+        <div class="job-card">
+          <div class="job-header">
+            <span class="job-name">${job.name}</span>
+            <span class="job-status ${job.enabled ? 'status-enabled' : 'status-disabled'}">
+              ${job.enabled ? '✅ Enabled' : '⏸️ Disabled'}
+            </span>
+          </div>
+          <div class="job-info">
+            <div class="info-item">
+              <span class="info-label">Schedule</span>
+              <span class="info-value">${getScheduleDesc(job)}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Next Run</span>
+              <span class="info-value">${job.state?.nextRunAtMs ? formatTime(job.state.nextRunAtMs) + ` (${timeUntil(job.state.nextRunAtMs)})` : 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Run</span>
+              <span class="info-value ${job.state?.lastStatus === 'ok' ? 'last-run-ok' : 'last-run-error'}">${job.state?.lastRunAtMs ? formatTime(job.state.lastRunAtMs) + ` [${job.state.lastStatus || '?'}]` : 'Never'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">${job.state?.lastDurationMs ? job.state.lastDurationMs + 'ms' : 'N/A'}</span>
+            </div>
+          </div>
+          <div class="payload">${getPayloadDesc(job.payload)}</div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <div class="refresh-time">Last updated: ${new Date().toLocaleString()}</div>
+  </div>
+</body>
+</html>`;
+
+  return html;
+}
+
+/**
+ * Main CLI handler
+ */
+function main() {
+  const args = process.argv.slice(2);
+  const command = args[0] || 'list';
+  
+  const data = loadJobs();
+  const jobs = data.jobs || [];
+  
+  switch (command) {
+    case 'list':
+    case 'ls':
+      displayTable(jobs, { enabled: null, detailed: false });
+      break;
+      
+    case 'detail':
+    case 'show':
+      if (!args[1]) {
+        console.error('❌ Usage: cron-dashboard detail <job-name-or-id>');
+        process.exit(1);
+      }
+      displayJob(jobs, args[1]);
+      break;
+      
+    case 'watch':
+      const interval = parseInt(args[1]) || 5;
+      watchJobs(jobs, interval);
+      break;
+      
+    case 'enabled':
+      displayTable(jobs, { enabled: true, detailed: false });
+      break;
+      
+    case 'disabled':
+      displayTable(jobs, { enabled: false, detailed: false });
+      break;
+      
+    case 'stats':
+      showStats(jobs);
+      break;
+      
+    case 'json':
+      exportJSON(jobs, args[1] === '--pretty');
+      break;
+      
+    case 'csv':
+      exportCSV(jobs);
+      break;
+      
+    case 'html':
+      const outputFile = args[1] || '/tmp/cron-dashboard.html';
+      const html = generateHTML(jobs);
+      fs.writeFileSync(outputFile, html, 'utf8');
+      console.log(`✅ HTML report saved to: ${outputFile}`);
+      break;
+      
+    case 'help':
+    case '-h':
+    case '--help':
+      console.log(`
+📋 Cron Job Dashboard
+
+Usage: cron-dashboard [command] [options]
+
+Commands:
+  list              List all cron jobs (default)
+  enabled           Show only enabled jobs
+  disabled          Show only disabled jobs
+  detail <name>     Show detailed info for a job
+  watch [interval]  Watch jobs in real-time (refresh every N seconds, default 5)
+  stats             Show statistics and next 5 upcoming runs
+  json [--pretty]   Export jobs as JSON
+  csv               Export jobs as CSV
+  html [file]       Generate HTML report (default: /tmp/cron-dashboard.html)
+  help              Show this help message
+
+Examples:
+  cron-dashboard              # List all jobs
+  cron-dashboard watch 3      # Watch with 3-second refresh
+  cron-dashboard detail "Morning briefing"
+  cron-dashboard stats
+  cron-dashboard html ~/dashboard.html
+
+Config: ~/.openclaw/cron/jobs.json
+`);
+      break;
+      
+    default:
+      console.error(`❌ Unknown command: ${command}`);
+      console.error('Run "cron-dashboard help" for usage information.');
+      process.exit(1);
+  }
+}
+
+main();

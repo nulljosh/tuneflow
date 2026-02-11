@@ -15,7 +15,7 @@
 - Prefers tldr/eli5 answers, hates unnecessary steps
 - Has schizophrenia — mentioned casually, respect it, don't make a thing of it. More just autism vibes though.
 - Family: Mom (+16042408966), Dad, Sarah, Ben (group chat)
-- Friends: TBD
+- Friends: **Alex** (+1-604-613-3388) - best friend, Victoria BC
 - Got burned by VibeCode credits/overcharging — wants to confront the creator about it
 
 **Reading interests:** Biography, Business, Classics, Comics, Fiction, Graphic novels, Humor, Music, Non-fiction, Poetry, Psychology, Romance, Science, Sci-fi, Young-adult
@@ -39,6 +39,7 @@
 - **WikiScroll** (v1.0.0) — TikTok for Wikipedia. React/Vite. Live at heyitsmejosh.com/wikiscroll/. Apple editorial design.
 - **Music Control System** (2026-02-09) — Comprehensive Apple Music CLI with 25+ commands, auto-DJ with intelligent queueing, and automatic playlist creation. Auto-queues similar tracks 20 seconds before song ends, creates "Auto Mix" playlists every 10 songs.
 - **Mac Automation Services** (2026-02-09) — Portfolio page + business launch. 3 service tiers (Bronze $200, Silver $500, Gold $1500). Marketing content prepared for Reddit, Twitter, HN, ProductHunt. Goal: $10k/month within 3 months.
+- **Finn** — Budget app for tracking expenses, subscriptions, and trips. Dominic Fike NYC trip budgeted at ~$2,356 CAD.
 
 ## Preferences & Lessons
 - Look things up myself (contacts, files) before asking Joshua

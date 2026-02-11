@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Convenience wrapper for cron-dashboard
+# Usage: cron [command] [args]
+
+DASHBOARD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DASHBOARD="$DASHBOARD_DIR/cron-dashboard"
+WEB_SERVER="$DASHBOARD_DIR/cron-web-server"
+
+if [ ! -f "$DASHBOARD" ]; then
+  echo "❌ Error: cron-dashboard not found at $DASHBOARD"
+  exit 1
+fi
+
+# Default to 'list' if no command provided
+CMD="${1:-list}"
+
+case "$CMD" in
+  web|server|start-web)
+    exec "$WEB_SERVER"
+    ;;
+  *)
+    exec "$DASHBOARD" "$@"
+    ;;
+esac

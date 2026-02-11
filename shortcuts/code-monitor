@@ -1,0 +1,197 @@
+#!/usr/bin/env node
+
+/**
+ * Code Runner Message Monitor
+ * Watches iMessage for code commands and executes them
+ * 
+ * Monitors for patterns:
+ * - code: [python code] → runs Python
+ * - node: [js code] → runs Node.js
+ * - sql: [query] → runs SQL
+ * - c: [C code] → compiles & runs C
+ * - bash: [script] → runs Bash
+ * 
+ * Usage: code-monitor [--once] [--limit 5]
+ *        code-monitor --once --limit 20  (run once, check last 20 messages)
+ *        Run as cron: */5 * * * * ~/.openclaw/workspace/shortcuts/code-monitor
+ */
+
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
+
+const STATE_FILE = path.join(require("os").homedir(), ".openclaw", "workspace", ".code-monitor-state.json");
+const RUNNER_CLI = path.join(require("os").homedir(), ".openclaw", "workspace", "shortcuts", "code-runner");
+
+class CodeMonitor {
+  constructor() {
+    this.state = this.loadState();
+    this.patterns = {
+      python: /^code:\s*([\s\S]+?)(?:\n|$)/m,
+      node: /^node:\s*([\s\S]+?)(?:\n|$)/m,
+      sql: /^sql:\s*([\s\S]+?)(?:\n|$)/m,
+      c: /^c:\s*([\s\S]+?)(?:\n|$)/m,
+      bash: /^bash:\s*([\s\S]+?)(?:\n|$)/m,
+    };
+  }
+
+  loadState() {
+    if (fs.existsSync(STATE_FILE)) {
+      try {
+        return JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
+      } catch {
+        return { lastChecked: Date.now(), processedMessages: new Set() };
+      }
+    }
+    return { lastChecked: Date.now(), processedMessages: [] };
+  }
+
+  saveState() {
+    const dir = path.dirname(STATE_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(STATE_FILE, JSON.stringify(this.state, null, 2));
+  }
+
+  async monitor(options = {}) {
+    const { once = false, limit = 50 } = options;
+
+    try {
+      const messages = await this.fetchRecentMessages(limit);
+      console.log(`[code-monitor] Checking ${messages.length} messages...`);
+
+      let processed = 0;
+      for (const msg of messages) {
+        if (this.isProcessed(msg.id)) continue;
+
+        const match = this.matchCommand(msg.text);
+        if (match) {
+          console.log(`[code-monitor] Found ${match.type} command in message ${msg.id}`);
+          await this.executeAndReply(msg, match);
+          processed++;
+        }
+
+        this.markProcessed(msg.id);
+      }
+
+      this.state.lastChecked = Date.now();
+      this.saveState();
+
+      console.log(`[code-monitor] Processed ${processed} commands`);
+
+      if (!once) {
+        // Reschedule
+        const interval = options.interval || 300000; // 5 minutes
+        setTimeout(() => this.monitor(options), interval);
+      }
+    } catch (e) {
+      console.error(`[code-monitor] Error:`, e.message);
+      if (!once) {
+        setTimeout(() => this.monitor(options), 60000); // Retry in 1 min
+      }
+    }
+  }
+
+  async fetchRecentMessages(limit) {
+    // This would typically fetch from iMessage API or database
+    // For now, return empty - will be populated via message tool integration
+    // In real implementation, you'd query:
+    // SELECT * FROM message WHERE datetime > recent ORDER BY datetime DESC LIMIT limit
+    return [];
+  }
+
+  matchCommand(text) {
+    for (const [type, pattern] of Object.entries(this.patterns)) {
+      const match = pattern.exec(text);
+      if (match) {
+        return { type, code: match[1].trim() };
+      }
+    }
+    return null;
+  }
+
+  isProcessed(msgId) {
+    return this.state.processedMessages.includes(msgId);
+  }
+
+  markProcessed(msgId) {
+    if (!this.state.processedMessages.includes(msgId)) {
+      this.state.processedMessages.push(msgId);
+      // Keep last 1000
+      if (this.state.processedMessages.length > 1000) {
+        this.state.processedMessages = this.state.processedMessages.slice(-1000);
+      }
+    }
+  }
+
+  async executeAndReply(msg, match) {
+    const result = this.executeCode(match.type, match.code);
+
+    // Format reply
+    let reply = result.output;
+    if (!result.success) {
+      reply = `❌ Error (${match.type}):\n${result.error}`;
+      if (result.output) {
+        reply += `\n\nOutput:\n${result.output}`;
+      }
+    } else {
+      // Limit output for iMessage
+      if (reply.length > 2000) {
+        reply = reply.substring(0, 2000) + `\n\n[... output truncated ...]`;
+      }
+    }
+
+    // Add metadata
+    reply += `\n\n✓ ${match.type} | ${result.runtime}`;
+
+    await this.sendReply(msg, reply);
+  }
+
+  executeCode(type, code) {
+    try {
+      const output = execSync(
+        `echo ${JSON.stringify(code)} | ${RUNNER_CLI} --type ${type} --format text`,
+        { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 }
+      );
+
+      return {
+        success: true,
+        output: output.trim(),
+        runtime: "completed",
+      };
+    } catch (e) {
+      return {
+        success: false,
+        output: e.stdout ? e.stdout.toString() : "",
+        error: e.stderr ? e.stderr.toString() : e.message,
+        runtime: "error",
+      };
+    }
+  }
+
+  async sendReply(msg, text) {
+    // Would use the message tool to send reply
+    // For now, log it
+    console.log(`[code-monitor] Reply to ${msg.from}:\n${text}`);
+  }
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const options = {
+    once: args.includes("--once"),
+    limit: parseInt(args.find((a) => a.startsWith("--limit="))?.split("=")[1] || "50"),
+    interval: parseInt(args.find((a) => a.startsWith("--interval="))?.split("=")[1] || "300000"),
+  };
+
+  const monitor = new CodeMonitor();
+  await monitor.monitor(options);
+}
+
+if (require.main === module) {
+  main().catch((e) => {
+    console.error("Fatal:", e);
+    process.exit(1);
+  });
+}
+
+module.exports = CodeMonitor;
