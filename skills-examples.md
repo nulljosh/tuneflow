@@ -1,6 +1,6 @@
 # Skills You Can Run
 
-## 🗓️ macos-calendar
+## ️ macos-calendar
 **What it does:** Manage your native Calendar.app
 
 **Try:**
@@ -8,7 +8,7 @@
 - "Add a gym session tomorrow at 3pm"
 - "Check if I'm free Friday afternoon"
 
-## 📸 screenshot-organizer
+##  screenshot-organizer
 **What it does:** Clean up screenshot chaos
 
 **Try:**
@@ -16,7 +16,7 @@
 - "Organize my Desktop screenshots by date"
 - "Extract text from this screenshot [drag image]"
 
-## 🧹 workspace-cleaner
+##  workspace-cleaner
 **What it does:** Declutter Downloads/Desktop by file type
 
 **Try:**
@@ -25,7 +25,7 @@
 - "Organize my Downloads by category"
 - "Clean up files older than 30 days"
 
-## 🔖 browser-bookmarks
+##  browser-bookmarks
 **What it does:** Search & manage Safari/Chrome bookmarks
 
 **Try:**
@@ -35,4 +35,4 @@
 
 ---
 
-All ready to use - just ask in natural language! 🐾
+All ready to use - just ask in natural language! 

@@ -149,4 +149,4 @@ services:
 - What you fixed
 - Current status (live URL working or not)
 
-Go! 🚀
+Go! 

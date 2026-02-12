@@ -1,7 +1,7 @@
 ---
 name: apple-music
 description: Control Apple Music on macOS — search, play, pause, skip, queue, and manage playlists via AppleScript. Use when the user asks to play music, search for songs, add/remove tracks from playlists, or control playback.
-metadata: {"clawdbot":{"emoji":"🎵","os":["darwin"],"requires":{"bins":["osascript"]}}}
+metadata: {"clawdbot":{"emoji":"","os":["darwin"],"requires":{"bins":["osascript"]}}}
 ---
 
 # Apple Music Control (macOS)
@@ -34,7 +34,7 @@ osascript -e 'tell application "Music" to set song repeat to all'
 osascript -e '
 tell application "Music"
   set t to current track
-  return "🎵 " & name of t & " by " & artist of t & " — " & album of t
+  return " " & name of t & " by " & artist of t & " — " & album of t
 end tell'
 ```
 
@@ -204,11 +204,11 @@ end tell'
 **Always send a confirmation iMessage after any music action.** Use the imsg skill:
 
 ```bash
-imsg send --to REQUESTER_PHONE --text "🎵 Now playing: SONG by ARTIST"
-imsg send --to REQUESTER_PHONE --text "➕ Added SONG to PLAYLIST_NAME"
+imsg send --to REQUESTER_PHONE --text " Now playing: SONG by ARTIST"
+imsg send --to REQUESTER_PHONE --text " Added SONG to PLAYLIST_NAME"
 imsg send --to REQUESTER_PHONE --text "⏭️ Skipped to: SONG by ARTIST"
 imsg send --to REQUESTER_PHONE --text "⏸️ Paused"
-imsg send --to REQUESTER_PHONE --text "🔍 Found in catalog, opening in Music app: SONG by ARTIST"
+imsg send --to REQUESTER_PHONE --text " Found in catalog, opening in Music app: SONG by ARTIST"
 ```
 
 ## Tips

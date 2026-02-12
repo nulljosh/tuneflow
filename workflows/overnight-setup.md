@@ -6,10 +6,10 @@ Run 24/7 with proactive monitoring, automated tasks, and minimal token burn.
 ## Jobs to Set Up Tonight
 
 ### 1. Morning Brief (Daily 9am PST)
-✅ Already configured
+ Already configured
 
 ### 2. Moltbook Engagement (Every 30min)
-✅ Already running (will resume when suspension lifts)
+ Already running (will resume when suspension lifts)
 
 ### 3. Collections Call Automation (Once Twilio setup complete)
 - **When:** User triggers via "call collections"

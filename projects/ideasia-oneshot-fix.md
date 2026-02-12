@@ -89,10 +89,10 @@ Once deployed:
 ## Expected Result
 
 Working ideasia site at https://ideasia.onrender.com with:
-- User registration ✓
-- Post creation ✓
-- Voting ✓
-- No errors ✓
+- User registration 
+- Post creation 
+- Voting 
+- No errors 
 
 ---
 
@@ -118,4 +118,4 @@ After completing, tell me:
 2. What you fixed
 3. Current status (live URL + test results)
 
-**GO!** 🚀
+**GO!** 

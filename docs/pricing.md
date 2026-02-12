@@ -2,17 +2,17 @@
 
 ## Service Tiers at a Glance
 
-### 🟦 Bronze — $200
+###  Bronze — $200
 
 **Perfect for:** Single workflow automation
 
-- ✅ 1 workflow automated
-- ✅ 2-hour turnaround
-- ✅ Full documentation
-- ✅ 1 revision round
-- ✅ 7-day support
-- ✅ Lifetime updates
-- ✅ Complete source code
+-  1 workflow automated
+-  2-hour turnaround
+-  Full documentation
+-  1 revision round
+-  7-day support
+-  Lifetime updates
+-  Complete source code
 
 **Examples:**
 - Email auto-sort
@@ -25,18 +25,18 @@
 
 ---
 
-### 🟩 Silver — $500
+###  Silver — $500
 
 **Perfect for:** Multi-system integration
 
-- ✅ 2-3 workflows
-- ✅ 1-week delivery
-- ✅ Professional documentation
-- ✅ 2 revision rounds
-- ✅ 30-min training session
-- ✅ 30-day support
-- ✅ GitHub repository
-- ✅ Complete source code
+-  2-3 workflows
+-  1-week delivery
+-  Professional documentation
+-  2 revision rounds
+-  30-min training session
+-  30-day support
+-  GitHub repository
+-  Complete source code
 
 **Examples:**
 - Email → Calendar → Slack
@@ -49,21 +49,21 @@
 
 ---
 
-### 🟨 Gold — $1,500
+###  Gold — $1,500
 
 **Perfect for:** Complete system transformation
 
-- ✅ Unlimited workflows
-- ✅ 2-week delivery
-- ✅ System audit (2-3 hours)
-- ✅ AI Music Control System
-- ✅ Custom dashboard
-- ✅ Professional documentation
-- ✅ 2-hour training session
-- ✅ 12 weeks of weekly optimization
-- ✅ 90-day support
-- ✅ Lifetime updates
-- ✅ GitHub repository with history
+-  Unlimited workflows
+-  2-week delivery
+-  System audit (2-3 hours)
+-  AI Music Control System
+-  Custom dashboard
+-  Professional documentation
+-  2-hour training session
+-  12 weeks of weekly optimization
+-  90-day support
+-  Lifetime updates
+-  GitHub repository with history
 
 **Includes everything:** Every automation you need, fully integrated.
 
@@ -154,10 +154,10 @@ You own everything. Forever.
 
 ### What We Accept
 
-- 💳 Credit Card (Stripe)
-- 💰 PayPal
-- 🏦 Bank Transfer
-- 💎 Crypto (Bitcoin, Ethereum)
+-  Credit Card (Stripe)
+-  PayPal
+-  Bank Transfer
+-  Crypto (Bitcoin, Ethereum)
 
 ### Payment Terms
 

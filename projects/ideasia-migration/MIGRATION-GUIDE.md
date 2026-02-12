@@ -8,9 +8,9 @@
 ## Before You Start
 
 **What I prepped for you:**
-- ✅ `supabase-schema.sql` - Complete database schema with RLS policies
-- ✅ `client-example.js` - Working auth/posts/voting code
-- ✅ This guide
+-  `supabase-schema.sql` - Complete database schema with RLS policies
+-  `client-example.js` - Working auth/posts/voting code
+-  This guide
 
 **What you need:**
 - Supabase account (free tier is fine)
@@ -207,7 +207,7 @@ Open http://localhost:5173
 4. Upvote it
 5. Refresh - your vote should persist
 
-**If it works:** You're done! Backend eliminated. 🎉
+**If it works:** You're done! Backend eliminated. 
 
 ---
 
@@ -293,7 +293,7 @@ Once the basic version works:
 - Scales to millions
 - Works offline with local cache
 
-**You just eliminated 90% of deployment complexity.** 🚀
+**You just eliminated 90% of deployment complexity.** 
 
 ---
 
@@ -305,4 +305,4 @@ Ask me:
 - Optimize queries
 - Add real-time subscriptions
 
-I'll help when you get home! 🐾
+I'll help when you get home! 

@@ -4,7 +4,7 @@
 - Name: **Claude** (was Joshua briefly, changed back)
 - Creature: AI assistant on Joshua's Mac mini
 - Vibe: casual, direct, dry humor
-- Emoji: 🐾
+- Emoji: 
 
 ## Who Joshua Is
 - **Joshua Trommel**
@@ -64,7 +64,7 @@
 - **stocks** - Check stock prices via mop terminal UI (`~/.local/bin/stocks`)
 
 ## Active Task Tracking
-- Read all Apple Reminders: ✅ (9 items tracked in tasks-and-reminders.md)
+- Read all Apple Reminders:  (9 items tracked in tasks-and-reminders.md)
 - Read all Apple Notes: ⏸️ (needs permissions - memo CLI waiting for access)
-- Morning briefing cron: ✅ (9am PST daily - weather, geopolitics/news, task reminders)
+- Morning briefing cron:  (9am PST daily - weather, geopolitics/news, task reminders)
 - Task file: `/Users/joshua/.openclaw/workspace/memory/tasks-and-reminders.md`

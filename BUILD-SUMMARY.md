@@ -1,6 +1,6 @@
 # Code Runner Agent - Build Summary
 
-**Status:** ✅ COMPLETE  
+**Status:**  COMPLETE  
 **Date:** 2026-02-10  
 **Lines of Code:** ~450  
 **Languages:** Node.js + Shell
@@ -22,7 +22,7 @@ A production-ready code execution system that processes code commands from iMess
   - JSON/text output formats
   - Compilation for C code
   
-**Test Results:** ✅ All tests pass
+**Test Results:**  All tests pass
 ```
 Supported types: python, node, c, sql, bash
 Output limit: 8000 bytes
@@ -67,8 +67,8 @@ Execution timeout: 30 seconds
 
 **Results:** 
 ```
-✓ Passed: 21
-✗ Failed: 0
+ Passed: 21
+ Failed: 0
 Status: PASS
 ```
 
@@ -81,50 +81,50 @@ Status: PASS
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| Python execution | ✅ | python3 -u |
-| Node.js execution | ✅ | node -e |
-| C compilation | ✅ | gcc + run |
-| SQL queries | ✅ | sqlite3 |
-| Bash scripts | ✅ | bash -c |
-| Error handling | ✅ | Full stderr capture |
-| Output truncation | ✅ | 8KB limit |
-| Timeout protection | ✅ | 30s max |
-| JSON output | ✅ | --format json |
-| Cron automation | ✅ | Every 5 min |
-| Message dedup | ✅ | State file tracking |
-| Activity logging | ✅ | ~/.openclaw/workspace/logs/ |
+| Python execution |  | python3 -u |
+| Node.js execution |  | node -e |
+| C compilation |  | gcc + run |
+| SQL queries |  | sqlite3 |
+| Bash scripts |  | bash -c |
+| Error handling |  | Full stderr capture |
+| Output truncation |  | 8KB limit |
+| Timeout protection |  | 30s max |
+| JSON output |  | --format json |
+| Cron automation |  | Every 5 min |
+| Message dedup |  | State file tracking |
+| Activity logging |  | ~/.openclaw/workspace/logs/ |
 
 ### Quick Testing
 
 All functionality verified:
 
 ```bash
-# Python ✅
+# Python 
 echo "print('hello')" | code-runner --type python
 # Output: hello
 
-# Node.js ✅
+# Node.js 
 echo "console.log(42)" | code-runner --type node
 # Output: 42
 
-# C ✅
+# C 
 echo "#include <stdio.h>
 int main() { printf(\"test\"); }" | code-runner --type c
 # Output: test
 
-# SQL ✅
+# SQL 
 code-runner --type sql "SELECT 1+1;"
 # Output: 2
 
-# Bash ✅
+# Bash 
 code-runner --type bash "echo 'works'"
 # Output: works
 
-# JSON format ✅
+# JSON format 
 echo "print(123)" | code-runner --type python --format json
 # Output: {"success": true, "output": "123", ...}
 
-# Error handling ✅
+# Error handling 
 echo "syntax error" | code-runner --type python 2>&1
 # Output: Error (python): SyntaxError...
 ```
@@ -168,13 +168,13 @@ Execution times (measured):
 
 ### Safety Features
 
-✅ **Timeout protection** - 30s max per execution  
-✅ **Output limiting** - 8KB max for iMessage compatibility  
-✅ **Error isolation** - Errors don't crash monitor  
-✅ **Deduplication** - Won't re-execute same command  
-✅ **Rate limiting** - Batch processing (50 msgs at a time)  
-✅ **Logging** - Full activity audit trail  
-✅ **User isolation** - Runs with your permissions (consider sandbox for untrusted code)  
+ **Timeout protection** - 30s max per execution  
+ **Output limiting** - 8KB max for iMessage compatibility  
+ **Error isolation** - Errors don't crash monitor  
+ **Deduplication** - Won't re-execute same command  
+ **Rate limiting** - Batch processing (50 msgs at a time)  
+ **Logging** - Full activity audit trail  
+ **User isolation** - Runs with your permissions (consider sandbox for untrusted code)  
 
 ### Limits
 
@@ -220,16 +220,16 @@ code-runner --type node < script.js
 
 ### What Works
 
-✅ Python/Node.js/C/SQL/Bash execution  
-✅ Error handling & capture  
-✅ Output formatting  
-✅ Timeout protection  
-✅ iMessage command detection  
-✅ Message deduplication  
-✅ Cron job automation  
-✅ Comprehensive logging  
-✅ Test suite  
-✅ Documentation  
+ Python/Node.js/C/SQL/Bash execution  
+ Error handling & capture  
+ Output formatting  
+ Timeout protection  
+ iMessage command detection  
+ Message deduplication  
+ Cron job automation  
+ Comprehensive logging  
+ Test suite  
+ Documentation  
 
 ### What Needs Integration
 
@@ -317,7 +317,7 @@ The system is ready for immediate use:
 
 ### Conclusion
 
-✅ **Code Runner Agent is complete and tested.**
+ **Code Runner Agent is complete and tested.**
 
 - **Total code:** ~1,160 lines
 - **Test coverage:** 21 tests, all passing
@@ -330,6 +330,6 @@ Ready to deploy and monitor iMessage code execution!
 ---
 
 **Built:** 2026-02-10  
-**Tested:** ✅ Comprehensive  
-**Documented:** ✅ Complete  
-**Status:** ✅ READY TO USE
+**Tested:**  Comprehensive  
+**Documented:**  Complete  
+**Status:**  READY TO USE

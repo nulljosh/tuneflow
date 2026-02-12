@@ -4,7 +4,7 @@
 
 ---
 
-## 🚨 OpenClaw Security Issues
+##  OpenClaw Security Issues
 
 ### Issue 1: Memory Leakage Across Sessions
 
@@ -135,7 +135,7 @@ This requires OpenClaw config changes or gateway restart.
 
 ---
 
-## 🔒 Ideasia Security Issues
+##  Ideasia Security Issues
 
 ### Issue 1: No Input Validation (Critical)
 
@@ -390,7 +390,7 @@ app.use(cors(corsOptions));
 
 ---
 
-## 🛡️ Security Checklist (Before Launch)
+## ️ Security Checklist (Before Launch)
 
 ### OpenClaw
 - [ ] Implement memory access allowlist
@@ -422,7 +422,7 @@ app.use(cors(corsOptions));
 
 ---
 
-## 📋 Immediate Actions (Priority Order)
+##  Immediate Actions (Priority Order)
 
 ### Today
 1. **OpenClaw:** Add memory access allowlist to USER.md
@@ -442,7 +442,7 @@ app.use(cors(corsOptions));
 
 ---
 
-## 🔗 Resources
+##  Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Express Security Best Practices](https://expressjs.com/en/advanced/best-practice-security.html)

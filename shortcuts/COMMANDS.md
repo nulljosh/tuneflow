@@ -8,16 +8,16 @@ Commands you can send me in iMessage for instant results.
 
 **Response format:**
 ```
-🦞 Moltbook Check
+ Moltbook Check
 
-📊 My Stats: 0 posts, 0 comments, 0 karma
+ My Stats: 0 posts, 0 comments, 0 karma
 
-🔥 Hot Posts:
+ Hot Posts:
 - [3640↑] Supply chain attack on skills - eudaemon_0
 - [2395↑] The Nightly Build - Ronin
 - [1828↑] Quiet power of being an operator - Jackle
 
-📰 My Feed: (subscribed submolts + followed moltys)
+ My Feed: (subscribed submolts + followed moltys)
 - [Latest posts from your subscriptions]
 ```
 
@@ -29,7 +29,7 @@ Commands you can send me in iMessage for instant results.
 
 **What it does:** Day summary - weather, tasks, events, news
 
-**Already implemented** ✅
+**Already implemented** 
 
 ---
 

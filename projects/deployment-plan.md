@@ -17,9 +17,9 @@
 
 | Project | Status | Priority | Action |
 |---------|--------|----------|--------|
-| **finn** | ✅ Live on GitHub Pages | 🟢 Maintain | Consider Wealthsimple auto-sync (research ToS first) |
-| **bread** | 🟡 Live but ugly URL | 🟡 Quick fix | Clean up Vercel URL, plan C/iOS version |
-| **ideasia** | 🔴 Backend hell | 🔴 Rebuild/simplify | Migrate to client-only or scrap |
+| **finn** |  Live on GitHub Pages |  Maintain | Consider Wealthsimple auto-sync (research ToS first) |
+| **bread** |  Live but ugly URL |  Quick fix | Clean up Vercel URL, plan C/iOS version |
+| **ideasia** |  Backend hell |  Rebuild/simplify | Migrate to client-only or scrap |
 
 ---
 
@@ -27,7 +27,7 @@
 
 ### 1. finn - Stock Portfolio Tracker
 
-**Current Status:** ✅ Shipped  
+**Current Status:**  Shipped  
 **Deployment:** GitHub Pages  
 **Tech Stack:** Pure HTML/CSS/JS (no framework)
 
@@ -54,7 +54,7 @@
 
 ### 2. bread - Prediction Markets Dashboard
 
-**Current Status:** 🟡 Live on Vercel, but ugly URL  
+**Current Status:**  Live on Vercel, but ugly URL  
 **Deployment:** Vercel  
 **Tech Stack:** Vite + React + Recharts + external APIs  
 **Live URL:** https://bread-m0zrli7pf-nulljosh-9577s-projects.vercel.app
@@ -98,7 +98,7 @@
 
 ### 3. ideasia - Idea Marketplace
 
-**Current Status:** 🔴 Struggling  
+**Current Status:**  Struggling  
 **Deployment:** Render (ideasia.onrender.com)  
 **Tech Stack:** Express + Supabase/PostgreSQL + JWT auth  
 **GitHub:** https://github.com/nulljosh/ideasia
@@ -128,7 +128,7 @@ All of this can be done client-side with Supabase.
 
 ### ideasia: Migration Options
 
-#### Option 1: Nuke Backend → Client-Only (RECOMMENDED ✅)
+#### Option 1: Nuke Backend → Client-Only (RECOMMENDED )
 
 **Strategy:** Rewrite to Supabase client SDK (no Express server)
 
@@ -303,14 +303,14 @@ All of this can be done client-side with Supabase.
 
 ## Lessons Learned
 
-### ✅ What Works
+###  What Works
 
 **Pattern:** Vite + React + Public APIs + Static Hosting
 
 **Examples:**
-- WikiScroll (Wikipedia API → GitHub Pages) ✅
-- bread (Yahoo Finance API → Vercel) ✅
-- finn (Static HTML → GitHub Pages) ✅
+- WikiScroll (Wikipedia API → GitHub Pages) 
+- bread (Yahoo Finance API → Vercel) 
+- finn (Static HTML → GitHub Pages) 
 
 **Why it works:**
 - No backend = no deployment complexity
@@ -323,12 +323,12 @@ All of this can be done client-side with Supabase.
 
 ---
 
-### ❌ What Doesn't Work
+###  What Doesn't Work
 
 **Pattern:** Express + Database + Cloud Hosting
 
 **Examples:**
-- ideasia (Express + Supabase + Render) ❌
+- ideasia (Express + Supabase + Render) 
 
 **Why it fails:**
 - Multiple services to configure (backend, database, hosting)
@@ -342,7 +342,7 @@ All of this can be done client-side with Supabase.
 
 ---
 
-### 🤔 When to Use a Backend
+###  When to Use a Backend
 
 **Only if you need:**
 - **Server-side secrets** (API keys that can't be exposed)
@@ -405,16 +405,16 @@ All of this can be done client-side with Supabase.
 
 **This Week:**
 
-1. **finn:** ✅ Done (leave as-is)
+1. **finn:**  Done (leave as-is)
 
-2. **bread:** 🟡 Fix Vercel URL
+2. **bread:**  Fix Vercel URL
    ```bash
    cd ~/projects/bread
    # Edit vercel.json, set "name": "bread"
    vercel --prod
    ```
 
-3. **ideasia:** 🔴 Decide on migration path
+3. **ideasia:**  Decide on migration path
    - Read this plan
    - Choose Option 1 (client-only) or Option 2 (simplify backend)
    - Block 4-5 hours for migration
@@ -456,4 +456,4 @@ Ask Claude (me) to:
 
 ---
 
-**End of Plan** 🐾
+**End of Plan** 

@@ -24,15 +24,15 @@ $ music play kid cudi
 ▶️  Gorgeous - Kanye West
 
 $ dj start
-🎧 Auto-DJ started (queues similar tracks automatically)
+ Auto-DJ started (queues similar tracks automatically)
 
 $ music info
-🎵 Now Playing: Gorgeous
-👤 Kanye West
-💿 My Beautiful Dark Twisted Fantasy
-📅 2010
+ Now Playing: Gorgeous
+ Kanye West
+ My Beautiful Dark Twisted Fantasy
+ 2010
 ⭐ Rating: 5/5
-❤️  Loved
+️  Loved
 ```
 
 Built with AppleScript + Bash, runs as a background daemon. ~500 lines of code, fully documented.
@@ -46,11 +46,11 @@ I'm now offering Mac automation services if anyone wants something similar for t
 ## Twitter Thread
 
 **Tweet 1:**
-I built an AI-powered Apple Music automation system in one day 🎵
+I built an AI-powered Apple Music automation system in one day 
 
 25+ commands, auto-DJ that learns your taste, smart playlist creation, and it runs in the background
 
-Thread on how I did it 👇
+Thread on how I did it 
 
 **Tweet 2:**
 Problem: I was spending too much time manually managing music - searching, queueing, creating playlists
@@ -229,7 +229,7 @@ When someone reaches out:
 
 ## Week 1 Action Plan
 
-**Day 1 (Today):** ✅ Portfolio page built
+**Day 1 (Today):**  Portfolio page built
 
 **Day 2:**
 - [ ] Deploy portfolio to heyitsmejosh.com/automation

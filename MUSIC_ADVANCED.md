@@ -14,7 +14,7 @@ Deep dive into scripting, customization, and integration patterns.
 PLAYING=$(music now)
 
 # Parse time information
-ARTIST=$(music now | grep "👤" | cut -d' ' -f2-)
+ARTIST=$(music now | grep "" | cut -d' ' -f2-)
 TRACK=$(music now | head -2 | tail -1)
 
 # Check if playing
@@ -91,7 +91,7 @@ done <<< "$PLAYLISTS"
 
 check_music_app() {
     if ! pgrep -x "Music" > /dev/null; then
-        echo "❌ Music app not running"
+        echo " Music app not running"
         echo "Opening Music..."
         open -a Music
         sleep 2
@@ -102,10 +102,10 @@ safe_play() {
     check_music_app
     
     if ! music play "$1" 2>/dev/null; then
-        echo "❌ Play failed for: $1"
+        echo " Play failed for: $1"
         return 1
     fi
-    echo "✅ Playing: $1"
+    echo " Playing: $1"
     return 0
 }
 
@@ -132,7 +132,7 @@ retry_music() {
         sleep 1
     done
     
-    echo "❌ Failed after $max_retries retries: $cmd"
+    echo " Failed after $max_retries retries: $cmd"
     return 1
 }
 
@@ -180,7 +180,7 @@ create_mood_playlist() {
     TIMESTAMP=$(date +%Y-%m-%d)
     music save "${mood} - ${TIMESTAMP}"
     
-    echo "✅ Created: ${mood} - ${TIMESTAMP}"
+    echo " Created: ${mood} - ${TIMESTAMP}"
 }
 
 create_mood_playlist "Morning Vibes" "indie"
@@ -194,7 +194,7 @@ create_mood_playlist "Evening Chill" "jazz"
 #!/bin/bash
 # Generate music statistics
 
-echo "🎵 Music Analysis"
+echo " Music Analysis"
 echo ""
 
 echo "Top 10 Tracks:"
@@ -301,7 +301,7 @@ schedule_music() {
 EOF
     
     launchctl load ~/Library/LaunchAgents/music-schedule-$hour.plist
-    echo "✅ Scheduled music change at $hour:00"
+    echo " Scheduled music change at $hour:00"
 }
 
 schedule_music 6 "indie"      # 6 AM: Indie
@@ -443,7 +443,7 @@ watch_dj_log
 music_dashboard() {
     while true; do
         clear
-        echo "🎵 Music Dashboard"
+        echo " Music Dashboard"
         echo "================="
         echo ""
         echo "Now Playing:"
@@ -477,7 +477,7 @@ generate_weekly_best() {
     # Create playlist with top tracks
     music playlist "Weekly Best W${WEEK}-${YEAR}"
     
-    echo "✅ Generated weekly playlist"
+    echo " Generated weekly playlist"
 }
 
 # Schedule weekly with cron

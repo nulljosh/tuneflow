@@ -35,11 +35,11 @@ No. Our automations are lightweight and designed for efficiency. Many actually _
 ### Is my data safe?
 
 Yes. Everything runs locally on your Mac:
-- ✅ No cloud storage
-- ✅ No data collection
-- ✅ No external accounts required
-- ✅ Complete local control
-- ✅ You own all scripts
+-  No cloud storage
+-  No data collection
+-  No external accounts required
+-  Complete local control
+-  You own all scripts
 
 Your data never leaves your machine.
 
@@ -66,14 +66,14 @@ You own the scripts, so you're never locked in.
 ### What apps can be automated?
 
 Most macOS apps can be automated:
-- ✅ Email (Apple Mail, Gmail, Outlook)
-- ✅ Calendar (Apple Calendar, Google, Outlook)
-- ✅ Music (Apple Music, Spotify, iTunes)
-- ✅ Files (Finder, iCloud Drive, Dropbox)
-- ✅ Communication (Slack, Messages, Discord)
-- ✅ Productivity (Notion, Asana, Monday.com)
-- ✅ Cloud services (Google Drive, Dropbox, OneDrive)
-- ✅ Any app with keyboard shortcuts or AppleScript
+-  Email (Apple Mail, Gmail, Outlook)
+-  Calendar (Apple Calendar, Google, Outlook)
+-  Music (Apple Music, Spotify, iTunes)
+-  Files (Finder, iCloud Drive, Dropbox)
+-  Communication (Slack, Messages, Discord)
+-  Productivity (Notion, Asana, Monday.com)
+-  Cloud services (Google Drive, Dropbox, OneDrive)
+-  Any app with keyboard shortcuts or AppleScript
 
 Some limitations exist with sandboxed apps, but 95% of popular apps work fine.
 

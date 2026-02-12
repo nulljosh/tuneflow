@@ -7,14 +7,14 @@ Complete guide to the AI Music Control System with 25+ commands and intelligent 
 Control Apple Music completely from the command line. Search, play, queue, rate, discover, and auto-DJ your music collection with natural language queries.
 
 **Features:**
-- ✅ 25+ commands for complete music control
-- ✅ Intelligent auto-DJ with genre matching
-- ✅ Smart playlist generation (every 10 songs)
-- ✅ Search library with natural language
-- ✅ Rating and love/unlike tracking
-- ✅ Analytics: top tracks, recent plays
-- ✅ Volume and playback mode control
-- ✅ Full scripting support (use in other scripts)
+-  25+ commands for complete music control
+-  Intelligent auto-DJ with genre matching
+-  Smart playlist generation (every 10 songs)
+-  Search library with natural language
+-  Rating and love/unlike tracking
+-  Analytics: top tracks, recent plays
+-  Volume and playback mode control
+-  Full scripting support (use in other scripts)
 
 ## Installation
 
@@ -197,7 +197,7 @@ The auto-DJ monitors what's playing and automatically queues the next track.
 4. Every 10 songs, creates "Auto Mix HH:MM" playlist
 
 **Learning:**
-- Tracks songs you love (❤️)
+- Tracks songs you love (️)
 - Learns from ratings (⭐)
 - Groups by genre
 - Suggests similar artists
@@ -233,8 +233,8 @@ The auto-DJ monitors what's playing and automatically queues the next track.
 
 | Command | Effect |
 |---------|--------|
-| `music love` | Mark as loved ❤️ |
-| `music unlike` | Mark as unliked 💔 |
+| `music love` | Mark as loved ️ |
+| `music unlike` | Mark as unliked  |
 | `music rating [1-5]` | Set/get star rating |
 
 ### Search & Discovery
@@ -320,7 +320,7 @@ music vol 30
 # Start auto-DJ for smooth background music
 dj start
 
-echo "📚 Deep work session started"
+echo " Deep work session started"
 echo "Stop with: dj stop"
 ```
 
@@ -330,15 +330,15 @@ echo "Stop with: dj stop"
 #!/bin/bash
 # Find your music patterns
 
-echo "🎵 Your Top 25 Tracks:"
+echo " Your Top 25 Tracks:"
 music top 25
 
 echo ""
-echo "🔄 Recently Played:"
+echo " Recently Played:"
 music recent
 
 echo ""
-echo "❤️  Check what you've loved:"
+echo "️  Check what you've loved:"
 music search ""  # This will search the loved playlist
 ```
 
@@ -540,11 +540,11 @@ music info
 
 ## Next Steps
 
-1. ✅ Install scripts
-2. ✅ Try basic commands (`music now`, `music play`)
-3. ✅ Start auto-DJ (`dj start`)
-4. ✅ Create your first playlist
-5. ✅ Build scripts that use these commands
+1.  Install scripts
+2.  Try basic commands (`music now`, `music play`)
+3.  Start auto-DJ (`dj start`)
+4.  Create your first playlist
+5.  Build scripts that use these commands
 
 ---
 

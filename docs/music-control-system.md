@@ -344,21 +344,21 @@ dj log
 
 ## Privacy
 
-- ✅ Everything runs locally on your Mac
-- ✅ No data sent to external servers
-- ✅ No analytics or tracking
-- ✅ No account requirements beyond Apple Music
-- ✅ Complete local control
+-  Everything runs locally on your Mac
+-  No data sent to external servers
+-  No analytics or tracking
+-  No account requirements beyond Apple Music
+-  Complete local control
 
 ## Customization
 
 All scripts are open source and fully documented. You can:
 
-- ✅ Modify commands
-- ✅ Add new features
-- ✅ Integrate with other tools
-- ✅ Share customizations
-- ✅ Use in other projects
+-  Modify commands
+-  Add new features
+-  Integrate with other tools
+-  Share customizations
+-  Use in other projects
 
 ## Examples
 

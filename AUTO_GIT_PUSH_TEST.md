@@ -28,7 +28,7 @@ When changes are detected, the system should:
 
 On file modification, the auto-git-push system should:
 - Detect this change
-- Create a commit with message like "✨ feat: Add new files (1 new)"
+- Create a commit with message like " feat: Add new files (1 new)"
 - Push to GitHub automatically
 - Log all actions to .agp.log
 

@@ -56,11 +56,11 @@ Built a Gold-tier automation system:
 
 ### Results
 
-- ✅ **2.5 hours saved per day** (12.5 hours per week)
-- ✅ **Email response time** cut from 2 hours to 15 minutes
-- ✅ **Zero missed tasks** (automation catches everything)
-- ✅ **Better focus time** (automations handle context-switching)
-- ✅ **Team efficiency** (clear action items, no confusion)
+-  **2.5 hours saved per day** (12.5 hours per week)
+-  **Email response time** cut from 2 hours to 15 minutes
+-  **Zero missed tasks** (automation catches everything)
+-  **Better focus time** (automations handle context-switching)
+-  **Team efficiency** (clear action items, no confusion)
 
 **Sarah's feedback:** *"It's like having an executive assistant that never sleeps. I get to actually think about strategy instead of managing the logistics."*
 
@@ -110,11 +110,11 @@ Built a Silver-tier automation:
 
 ### Results
 
-- ✅ **3 hours saved per week** (156 hours per year)
-- ✅ **No more lost feedback** (organized system)
-- ✅ **Invoice payment 40% faster** (automated reminders)
-- ✅ **Professional image** (organized, timely communication)
-- ✅ **Revenue clarity** (know what you're billing)
+-  **3 hours saved per week** (156 hours per year)
+-  **No more lost feedback** (organized system)
+-  **Invoice payment 40% faster** (automated reminders)
+-  **Professional image** (organized, timely communication)
+-  **Revenue clarity** (know what you're billing)
 
 **Marcus's feedback:** *"I can actually focus on design now. The admin stuff just happens in the background."*
 
@@ -170,10 +170,10 @@ Then created `focus.sh` for deep work sessions:
 
 ### Results
 
-- ✅ **15 minutes saved daily** (1.25 hours per week)
-- ✅ **Focus time increased** (no notification interruptions)
-- ✅ **Better work-life balance** (automatic off-hours boundaries)
-- ✅ **Accurate time tracking** (automated logging)
+-  **15 minutes saved daily** (1.25 hours per week)
+-  **Focus time increased** (no notification interruptions)
+-  **Better work-life balance** (automatic off-hours boundaries)
+-  **Accurate time tracking** (automated logging)
 
 **Dev's feedback:** *"Having a script handle the boring stuff means I'm in deep work within 30 seconds of sitting down."*
 
@@ -228,11 +228,11 @@ Built a Gold-tier automation system:
 
 ### Results
 
-- ✅ **5 hours saved per week** on administrative tasks
-- ✅ **Consistent publishing** (no missed schedules)
-- ✅ **Better audience engagement** (faster responses)
-- ✅ **Data-driven decisions** (analytics at your fingertips)
-- ✅ **10% revenue increase** (better posting times, consistency)
+-  **5 hours saved per week** on administrative tasks
+-  **Consistent publishing** (no missed schedules)
+-  **Better audience engagement** (faster responses)
+-  **Data-driven decisions** (analytics at your fingertips)
+-  **10% revenue increase** (better posting times, consistency)
 
 **Alex's feedback:** *"My automation system basically handles everything except actual filming and editing. I'm free to be creative."*
 
@@ -287,11 +287,11 @@ Built a Silver-tier automation:
 
 ### Results
 
-- ✅ **6-8 hours saved per week**
-- ✅ **Zero data entry errors** (OCR automation)
-- ✅ **Clients see reports immediately** (automated)
-- ✅ **Payment tracking 100% accurate**
-- ✅ **Professional image** (consistent, timely reports)
+-  **6-8 hours saved per week**
+-  **Zero data entry errors** (OCR automation)
+-  **Clients see reports immediately** (automated)
+-  **Payment tracking 100% accurate**
+-  **Professional image** (consistent, timely reports)
 
 **Jamie's feedback:** *"Now I spend 30 minutes on invoicing instead of 2 hours. The time savings alone paid for the automation service in the first month."*
 
@@ -311,10 +311,10 @@ Built a Silver-tier automation:
 
 ## What These Clients Had in Common
 
-✅ **Clear pain points** — They knew what frustrated them  
-✅ **Repetitive work** — Tasks that happen weekly or daily  
-✅ **Multiple systems** — Information spread across apps  
-✅ **Willingness to change** — Open to new ways of working  
+ **Clear pain points** — They knew what frustrated them  
+ **Repetitive work** — Tasks that happen weekly or daily  
+ **Multiple systems** — Information spread across apps  
+ **Willingness to change** — Open to new ways of working  
 
 **They didn't have in common:**
 - Industry (SaaS, freelance, engineering, content, bookkeeping)
