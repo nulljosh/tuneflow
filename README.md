@@ -1,6 +1,6 @@
-# Mac Automation Services
+# TuneFlow
 
-Professional Mac automation consulting — eliminate repetitive tasks with intelligent systems.
+Advanced Apple Music automation system with intelligent AI-powered features.
 
 ## Live Site
 
@@ -66,20 +66,9 @@ All scripts included in this repo:
 - Creates "Auto Mix HH:MM" playlists every 10 songs
 - Learns from loved tracks and ratings
 
-## Services
-
-### Bronze - $200
-Single workflow automation (2-hour turnaround)
-
-### Silver - $500
-Multi-system integration (1 week delivery)
-
-### Gold - $1,500
-Complete automation overhaul (2 weeks + 90-day support)
-
 ## Contact
 
-**Email:** contact@heyitsmejosh.com  
+**Email:** jatrommel@gmail.com  
 **Portfolio:** [heyitsmejosh.com](https://heyitsmejosh.com)  
 **GitHub:** [@nulljosh](https://github.com/nulljosh)
 
