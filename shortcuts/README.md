@@ -53,14 +53,14 @@ shortcuts/
 ```
 You: code: sum([1, 2, 3, 4, 5])
 Bot: 15
-     ✓ python | 145ms
+      python | 145ms
 ```
 
 ### Node.js Array Operations
 ```
 You: node: [1,2,3].map(x => x*x)
 Bot: [ 1, 4, 9 ]
-     ✓ node | 89ms
+      node | 89ms
 ```
 
 ### SQL Database Query
@@ -70,7 +70,7 @@ You: sql: CREATE TABLE users(id INT, name TEXT);
        SELECT * FROM users;
 Bot: 1|Alice
      2|Bob
-     ✓ sql | 234ms
+      sql | 234ms
 ```
 
 ### C Compilation
@@ -78,7 +78,7 @@ Bot: 1|Alice
 You: c: #include <stdio.h>
        int main() { printf("Hello from C"); }
 Bot: Hello from C
-     ✓ c | 567ms
+      c | 567ms
 ```
 
 ## Installation
@@ -280,7 +280,7 @@ Activity logged to: `~/.openclaw/workspace/logs/code-runner.log`
 ./test-code-runner
 
 # Expected output:
-# ✓ All tests passed!
+#  All tests passed!
 ```
 
 ### Add a new language
@@ -321,4 +321,4 @@ For issues or questions:
 ---
 
 **Last updated:** 2026-02-10
-**Status:** ✅ Ready for production
+**Status:**  Ready for production

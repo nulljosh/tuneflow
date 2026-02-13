@@ -1,4 +1,4 @@
-# 📋 Cron Dashboard - Build Summary
+#  Cron Dashboard - Build Summary
 
 ## What Was Built
 
@@ -67,7 +67,7 @@ cron detail name  # Job details
 For each job, you see:
 
 1. **Name** — Human-readable job name
-2. **Status** — Enabled (✅) or disabled (⏸️)
+2. **Status** — Enabled () or disabled (⏸️)
 3. **Schedule** — When it runs:
    - Cron: `09:00 America/Vancouver` (recurring)
    - At: `Mar 6, 2026, 06:00:00 PM` (one-time)
@@ -80,11 +80,11 @@ For each job, you see:
 
 ## Real-Time Capabilities
 
-✅ **Live Updates** — Watch mode refreshes every N seconds  
-✅ **Countdown Timers** — Shows "time until next run"  
-✅ **Status Indicators** — ✓ (success) or ✗ (failure)  
-✅ **Web Auto-Refresh** — Browser dashboard updates automatically  
-✅ **API Access** — JSON endpoint for programmatic access  
+ **Live Updates** — Watch mode refreshes every N seconds  
+ **Countdown Timers** — Shows "time until next run"  
+ **Status Indicators** —  (success) or  (failure)  
+ **Web Auto-Refresh** — Browser dashboard updates automatically  
+ **API Access** — JSON endpoint for programmatic access  
 
 ## Architecture
 
@@ -109,11 +109,11 @@ Refresh: As-needed (file-based)
 ### Quick Status Check
 ```bash
 $ cron-dashboard
-📋 Cron Jobs (21 total, 14 enabled)
-✅ [1] Morning briefing
+ Cron Jobs (21 total, 14 enabled)
+ [1] Morning briefing
    Schedule: Every: 09:00 (America/Vancouver)
    Next run: Feb 11, 2026, 09:00:00 AM (20h 52m)
-   Last run: Feb 10, 2026, 09:00:00 AM [✓]
+   Last run: Feb 10, 2026, 09:00:00 AM []
    ...
 ```
 
@@ -126,18 +126,18 @@ $ cron-dashboard watch 3
 ### Find Job Details
 ```bash
 $ cron-dashboard detail "Morning briefing"
-📌 Job: Morning briefing
+ Job: Morning briefing
 ID: 12ca412a-1252-46bb-819d-eac84bc46412
-Status: ✅ Enabled
+Status:  Enabled
 ...
 ```
 
 ### Statistics
 ```bash
 $ cron-dashboard stats
-📈 Cron Job Statistics
+ Cron Job Statistics
 Total Jobs: 21
-  ✅ Enabled: 14
+   Enabled: 14
   ⏸️  Disabled: 7
 ...
 ⏳ Next 5 Runs:
@@ -149,9 +149,9 @@ Total Jobs: 21
 ### Web Dashboard
 ```bash
 $ cron-web-server
-🌐 Cron Dashboard Web Server
-  📊 Dashboard: http://localhost:8765
-  📡 API: http://localhost:8765/api/jobs
+ Cron Dashboard Web Server
+   Dashboard: http://localhost:8765
+   API: http://localhost:8765/api/jobs
 ```
 Open browser → Auto-refreshing dashboard with all jobs + stats
 
@@ -170,7 +170,7 @@ $ cron-dashboard html ~/report.html
 ## Customization
 
 ### Colors & Formatting
-CLI output uses ANSI colors + Unicode symbols (✅, ⏸️, ✓, ✗)
+CLI output uses ANSI colors + Unicode symbols (, ⏸️, , )
 Web dashboard uses dark theme (can be modified in HTML generation)
 
 ### Custom Port for Web Server
@@ -187,15 +187,15 @@ export PATH="$PATH:$HOME/.openclaw/workspace/shortcuts"
 
 ## Testing Performed
 
-✅ List mode — All 21 jobs display correctly  
-✅ Enabled/disabled filtering — Correct counts  
-✅ Detail view — Full job info shows  
-✅ Stats mode — Displays statistics + next runs  
-✅ CSV export — Valid format with headers  
-✅ JSON export — Valid JSON output  
-✅ HTML generation — Creates valid HTML file  
-✅ Time calculations — Countdowns and formatting work  
-✅ Schedule parsing — Cron expressions readable  
+ List mode — All 21 jobs display correctly  
+ Enabled/disabled filtering — Correct counts  
+ Detail view — Full job info shows  
+ Stats mode — Displays statistics + next runs  
+ CSV export — Valid format with headers  
+ JSON export — Valid JSON output  
+ HTML generation — Creates valid HTML file  
+ Time calculations — Countdowns and formatting work  
+ Schedule parsing — Cron expressions readable  
 
 ## What's NOT Included
 
@@ -218,10 +218,10 @@ Possible additions (not included in this build):
 
 ## Security Notes
 
-✅ **Safe** — Read-only access to cron config  
-✅ **Local** — Web server binds to localhost:8765 only  
-✅ **No credentials** — No sensitive data exposure  
-✅ **No modifications** — Cannot enable/disable/create jobs  
+ **Safe** — Read-only access to cron config  
+ **Local** — Web server binds to localhost:8765 only  
+ **No credentials** — No sensitive data exposure  
+ **No modifications** — Cannot enable/disable/create jobs  
 
 To restrict further:
 ```bash
@@ -264,7 +264,7 @@ openclaw cron list
 ---
 
 **Build Date:** Feb 10, 2026  
-**Status:** ✅ Complete & Tested  
+**Status:**  Complete & Tested  
 **Location:** `~/.openclaw/workspace/shortcuts/`
 
 All tools are production-ready and can be used immediately for cron job monitoring.

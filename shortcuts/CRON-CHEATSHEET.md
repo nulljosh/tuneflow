@@ -70,10 +70,10 @@ cron-dashboard watch 10     # Every 10 seconds (slow)
 
 | Symbol | Meaning |
 |--------|---------|
-| ✅ | Job enabled, will run |
+|  | Job enabled, will run |
 | ⏸️ | Job disabled, won't run |
-| ✓ | Last run succeeded |
-| ✗ | Last run failed |
+|  | Last run succeeded |
+|  | Last run failed |
 | — | Not scheduled / Never run |
 
 ## Time Format Examples

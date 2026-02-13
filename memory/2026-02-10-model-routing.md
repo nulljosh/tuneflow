@@ -23,7 +23,7 @@ Added a new `routing` section to `agents.defaults.model`:
 - **default tasks** → `anthropic/claude-haiku-4-5` (balance speed/quality)
 - **primary** → `anthropic/claude-haiku-4-5` (unchanged)
 
-## Validation ✅
+## Validation 
 
 1. **JSON Syntax**: Valid (verified with `jq`)
 2. **Configuration Readability**: Can read all routing rules programmatically

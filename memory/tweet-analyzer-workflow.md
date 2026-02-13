@@ -53,7 +53,7 @@ Just send tweet screenshot via iMessage - I'll detect it and process automatical
 - Each project gets its own directory with `IDEA.md`
 
 ## Status
-- ✅ Workflow defined
-- ✅ Scripts created
-- ❌ bird CLI (download broken, using screenshots instead)
-- ✅ Screenshot analysis working
+-  Workflow defined
+-  Scripts created
+-  bird CLI (download broken, using screenshots instead)
+-  Screenshot analysis working

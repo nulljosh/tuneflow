@@ -128,11 +128,11 @@ We use:
 - **LaunchAgent** for background scheduling
 
 All scripts are:
-- ✅ Open source and documented
-- ✅ Modifiable and portable
-- ✅ Version controlled with Git
-- ✅ Backed up and maintained
-- ✅ Transparent (you own everything)
+-  Open source and documented
+-  Modifiable and portable
+-  Version controlled with Git
+-  Backed up and maintained
+-  Transparent (you own everything)
 
 ## FAQ
 

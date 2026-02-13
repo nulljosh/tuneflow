@@ -1,0 +1,5 @@
+node_modules/
+memory/
+*.log
+.clawhub/
+.DS_Store

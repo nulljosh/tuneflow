@@ -7,13 +7,13 @@ Three clear, transparent pricing options. Pick what fits your needs.
 **Perfect for:** One-time workflow automation or testing the waters
 
 ### What's Included
-- ✅ Single workflow automation
-- ✅ 2-hour turnaround
-- ✅ Full documentation
-- ✅ 1 revision round
-- ✅ Lifetime updates for that workflow
-- ✅ Complete source code (you own it)
-- ✅ 7 days of free tweaks after delivery
+-  Single workflow automation
+-  2-hour turnaround
+-  Full documentation
+-  1 revision round
+-  Lifetime updates for that workflow
+-  Complete source code (you own it)
+-  7 days of free tweaks after delivery
 
 ### Examples
 - **Email Auto-Sort** — Automatically organize incoming mail
@@ -44,15 +44,15 @@ Three clear, transparent pricing options. Pick what fits your needs.
 **Perfect for:** Connecting multiple systems and building cohesive workflows
 
 ### What's Included
-- ✅ 2-3 connected workflows
-- ✅ Multi-system integration
-- ✅ 1-week delivery
-- ✅ Professional documentation
-- ✅ 2 revision rounds
-- ✅ Training session (30 min)
-- ✅ All source code (you own it)
-- ✅ 30 days of free support and tweaks
-- ✅ Git repository with version control
+-  2-3 connected workflows
+-  Multi-system integration
+-  1-week delivery
+-  Professional documentation
+-  2 revision rounds
+-  Training session (30 min)
+-  All source code (you own it)
+-  30 days of free support and tweaks
+-  Git repository with version control
 
 ### Examples
 - **Email → Calendar → Slack Pipeline** — Emails create calendar events and notify team
@@ -93,17 +93,17 @@ Three clear, transparent pricing options. Pick what fits your needs.
 **Perfect for:** Complete system transformation, personal AI assistant, unlimited workflows
 
 ### What's Included
-- ✅ Unlimited workflows and automations
-- ✅ Complete system audit (2-3 hours)
-- ✅ AI Music Control System (25+ commands, auto-DJ)
-- ✅ Custom monitoring dashboard
-- ✅ 2-week delivery
-- ✅ Professional documentation and training
-- ✅ All source code (you own it)
-- ✅ 90-day intensive support period
-- ✅ Weekly optimization sessions (12 weeks)
-- ✅ Lifetime updates and maintenance
-- ✅ Git repository with full history
+-  Unlimited workflows and automations
+-  Complete system audit (2-3 hours)
+-  AI Music Control System (25+ commands, auto-DJ)
+-  Custom monitoring dashboard
+-  2-week delivery
+-  Professional documentation and training
+-  All source code (you own it)
+-  90-day intensive support period
+-  Weekly optimization sessions (12 weeks)
+-  Lifetime updates and maintenance
+-  Git repository with full history
 
 ### What Makes Gold Different
 **Complete Transformation:** Not just automating tasks — restructuring how you work.
@@ -187,11 +187,11 @@ Three clear, transparent pricing options. Pick what fits your needs.
 | **Revisions** | 1 round | 2 rounds | 5+ rounds |
 | **Support** | 7 days | 30 days | 90 days |
 | **Training** | Documentation | 30 min session | 2 hours + weekly |
-| **Music System** | — | — | ✅ Included |
-| **Dashboard** | — | — | ✅ Included |
-| **Weekly Check-ins** | — | — | ✅ 12 weeks |
-| **Source Code** | ✅ You own it | ✅ You own it | ✅ You own it |
-| **Lifetime Updates** | ✅ That workflow | ✅ Those workflows | ✅ Everything |
+| **Music System** | — | — |  Included |
+| **Dashboard** | — | — |  Included |
+| **Weekly Check-ins** | — | — |  12 weeks |
+| **Source Code** |  You own it |  You own it |  You own it |
+| **Lifetime Updates** |  That workflow |  Those workflows |  Everything |
 
 ---
 
@@ -233,10 +233,10 @@ Three clear, transparent pricing options. Pick what fits your needs.
 
 We stand behind our work:
 
-- ✅ **Money-back guarantee** if you're not satisfied within 7 days
-- ✅ **Free revisions** up to your tier's revision limit
-- ✅ **Lifetime support** for technical issues
-- ✅ **Source code ownership** — it's always yours
+-  **Money-back guarantee** if you're not satisfied within 7 days
+-  **Free revisions** up to your tier's revision limit
+-  **Lifetime support** for technical issues
+-  **Source code ownership** — it's always yours
 
 ---
 

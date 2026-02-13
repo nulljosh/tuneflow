@@ -34,27 +34,27 @@ auto-git-push help
 
 ## Features
 
-✅ **Significant Change Detection**
+ **Significant Change Detection**
 - Detects >10 line changes
 - Detects all new files
 - Ignores minor modifications
 
-✅ **Intelligent Commit Messages**
-- Auto-categorizes: `✨ feat`, `✅ test`, `📝 docs`, `⚙️  config`
+ **Intelligent Commit Messages**
+- Auto-categorizes: ` feat`, ` test`, ` docs`, `⚙️  config`
 - Includes emoji for quick visual scanning
 - Shows file counts and change types
 
-✅ **Debouncing**
+ **Debouncing**
 - Waits 5 seconds between checks
 - Prevents too-frequent commits
 - Batches related changes together
 
-✅ **Comprehensive Logging**
+ **Comprehensive Logging**
 - All actions logged to `.agp.log`
 - Timestamps for each action
 - Color-coded output (INFO, OK, WARN, ERROR)
 
-✅ **Safe Pushing**
+ **Safe Pushing**
 - Uses `--force-with-lease` as fallback
 - Only pushes committed changes
 - Won't force-push if remote has new commits
@@ -71,12 +71,12 @@ DEBOUNCE_SECONDS=10 auto-git-push watch .
 
 ## Example Commit Messages
 
-- `✨ feat: Add new files (3 new)` — New features/files added
-- `🔧 refactor: Update source code` — Source code changes
-- `✅ test: Add/update tests + docs` — Tests and documentation
-- `📝 docs: Update documentation` — Documentation-only changes
+- ` feat: Add new files (3 new)` — New features/files added
+- ` refactor: Update source code` — Source code changes
+- ` test: Add/update tests + docs` — Tests and documentation
+- ` docs: Update documentation` — Documentation-only changes
 - `⚙️  config: Update configuration` — Configuration changes
-- `🔄 chore: Auto-committed changes (5 file(s))` — Mixed changes
+- ` chore: Auto-committed changes (5 file(s))` — Mixed changes
 
 ## Real-World Usage
 
@@ -151,7 +151,7 @@ Example log output:
 ```
 [2026-02-10 12:06:30] [INFO] Running one-time check
 [2026-02-10 12:06:30] [INFO] Significant changes detected
-[2026-02-10 12:06:31] [INFO] Generated commit message: ✨ feat: Add new files (3 new)
+[2026-02-10 12:06:31] [INFO] Generated commit message:  feat: Add new files (3 new)
 [2026-02-10 12:06:31] [OK] Changes committed
 [2026-02-10 12:06:32] [OK] Changes pushed to remote
 ```
@@ -184,34 +184,34 @@ cd ~/.openclaw/workspace && git log --oneline -1
 
 ## Security Notes
 
-- ✅ Never forces push over conflicting remote changes
-- ✅ Only pushes after successful local commit
-- ✅ Respects .gitignore
-- ✅ Won't push if no remote configured
+-  Never forces push over conflicting remote changes
+-  Only pushes after successful local commit
+-  Respects .gitignore
+-  Won't push if no remote configured
 - ⚠️  Requires git credentials configured (SSH or credential helper)
 
 ## File Status
 
 ```
-📁 /Users/joshua/.openclaw/workspace/shortcuts/
+ /Users/joshua/.openclaw/workspace/shortcuts/
 ├── auto-git-push      ← Main executable script
 └── AGP.md             ← This documentation
 ```
 
 ## Test Results
 
-✅ **Tested on:** `/Users/joshua/.openclaw/workspace`
+ **Tested on:** `/Users/joshua/.openclaw/workspace`
 
 ```
 Changes Detected:    21 files modified, created, deleted
-Commit Created:      ✅ test: Add/update tests + docs
-Staged Changes:      ✅ git add -A successful
-Message Generated:   ✅ Intelligent categorization working
-Log Created:         ✅ .agp.log created with timestamps
+Commit Created:       test: Add/update tests + docs
+Staged Changes:       git add -A successful
+Message Generated:    Intelligent categorization working
+Log Created:          .agp.log created with timestamps
 ```
 
 ---
 
 **Created:** 2026-02-10  
 **Version:** 1.0  
-**Status:** ✅ Production Ready
+**Status:**  Production Ready

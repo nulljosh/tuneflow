@@ -1,10 +1,10 @@
 # Code Runner - Deployment Guide
 
-**Status:** ✅ Ready to Deploy  
+**Status:**  Ready to Deploy  
 **Test Results:** 21/21 passing  
 **Lines of Code:** ~450 LOC  
 
-## 🚀 Deploy in 3 Steps
+##  Deploy in 3 Steps
 
 ### Step 1: Verify Installation
 ```bash
@@ -26,14 +26,14 @@ cd ~/.openclaw/workspace/shortcuts
 ./install-code-runner 30     # Every 30 minutes
 ```
 
-## 📋 Files Included
+##  Files Included
 
 ### Core
 | File | Purpose | Status |
 |------|---------|--------|
-| `code-runner` | Main executor | ✅ Tested |
-| `code-monitor` | Message monitor | ✅ Ready |
-| `install-code-runner` | Cron setup | ✅ Ready |
+| `code-runner` | Main executor |  Tested |
+| `code-monitor` | Message monitor |  Ready |
+| `install-code-runner` | Cron setup |  Ready |
 
 ### Documentation
 | File | Content |
@@ -48,7 +48,7 @@ cd ~/.openclaw/workspace/shortcuts
 |------|-------|
 | `test-code-runner` | 21 tests, all passing |
 
-## 🧪 Quick Test
+##  Quick Test
 
 ```bash
 # Python
@@ -61,10 +61,10 @@ echo "console.log([1,2,3])" | code-runner --type node
 
 # All tests
 ./test-code-runner
-# Output: ✓ All tests passed!
+# Output:  All tests passed!
 ```
 
-## 📱 Using with iMessage
+##  Using with iMessage
 
 ### Send Code Commands
 
@@ -122,7 +122,7 @@ const poll_interval = 300000;   // 5 minutes
 const batch_size = 50;          // Messages per check
 ```
 
-## 🔍 Monitoring
+##  Monitoring
 
 ### Check Status
 
@@ -150,7 +150,7 @@ grep "Error" ~/.openclaw/workspace/logs/code-runner.log
 grep "python" ~/.openclaw/workspace/logs/code-runner.log
 ```
 
-## 🛠️ Troubleshooting
+## ️ Troubleshooting
 
 ### "command not found"
 ```bash
@@ -192,7 +192,7 @@ tail ~/.openclaw/workspace/logs/code-runner.log
 3. Verify code-runner works: test manually
 4. Check logs for errors
 
-## 📊 Performance
+##  Performance
 
 Typical execution times:
 
@@ -208,7 +208,7 @@ Maximum output: 8 KB (iMessage compatible)
 Maximum runtime: 30 seconds
 Processing interval: 5 minutes (configurable)
 
-## 🔐 Security Notes
+##  Security Notes
 
 ### Run as Your User
 Code executes with your permissions. Everything you can access, code can access.
@@ -220,12 +220,12 @@ Code executes with your permissions. Everything you can access, code can access.
 - Consider sandboxing if needed (Docker/VM)
 
 ### Limits Applied
-✅ Timeout: 30 seconds max  
-✅ Output: 8 KB max  
-✅ CPU: System defaults  
-✅ Memory: System defaults  
+ Timeout: 30 seconds max  
+ Output: 8 KB max  
+ CPU: System defaults  
+ Memory: System defaults  
 
-## 📈 Scaling
+##  Scaling
 
 ### For More Frequent Checks
 ```bash
@@ -240,7 +240,7 @@ Code executes with your permissions. Everything you can access, code can access.
 ### For Real-Time (Webhook)
 Implement webhook handler that calls code-runner directly.
 
-## 🚨 Emergency Operations
+##  Emergency Operations
 
 ### Stop Monitor
 ```bash
@@ -269,14 +269,14 @@ grep -i error ~/.openclaw/workspace/logs/code-runner.log
 tail -f ~/.openclaw/workspace/logs/code-runner.log
 ```
 
-## 📚 Documentation Map
+##  Documentation Map
 
 - **Quick Start:** → README.md
 - **Full Reference:** → CODE-RUNNER-DOCS.md
 - **Technical Details:** → BUILD-SUMMARY.md
 - **Installation:** → This file (DEPLOYMENT-GUIDE.md)
 
-## ✅ Pre-Flight Checklist
+##  Pre-Flight Checklist
 
 Before going live:
 
@@ -288,7 +288,7 @@ Before going live:
 - [ ] Verify cron: `crontab -l | grep code-monitor`
 - [ ] Wait 5 minutes and check logs: `tail ~/.openclaw/workspace/logs/code-runner.log`
 
-## 📞 Support
+##  Support
 
 For issues:
 
@@ -297,7 +297,7 @@ For issues:
 3. Test directly: `echo "code" | code-runner --type python`
 4. Review docs: See documentation map above
 
-## 🎯 Next Steps
+##  Next Steps
 
 1. **Deploy:** Run `install-code-runner` to enable monitoring
 2. **Test:** Send a test message: `code: print("test")`
@@ -308,6 +308,6 @@ For issues:
 
 **Installation Time:** ~2 minutes  
 **Setup Difficulty:** Easy  
-**Status:** ✅ Ready  
+**Status:**  Ready  
 
 **Go ahead and deploy!**

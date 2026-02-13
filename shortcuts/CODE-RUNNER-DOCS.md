@@ -146,7 +146,7 @@ Reply via iMessage
 ```
 You: code: print([x**2 for x in range(5)])
 Bot: [0, 1, 4, 9, 16]
-     ✓ python | 145ms
+      python | 145ms
 ```
 
 ### Node.js
@@ -154,7 +154,7 @@ Bot: [0, 1, 4, 9, 16]
 ```
 You: node: console.log("Hello from Node: " + (1 + 2 * 3))
 Bot: Hello from Node: 7
-     ✓ node | 89ms
+      node | 89ms
 ```
 
 ### C Compilation
@@ -167,7 +167,7 @@ You: c: #include <stdio.h>
 Bot: 1
      4
      9
-     ✓ c | 234ms
+      c | 234ms
 ```
 
 ### SQL Query
@@ -177,7 +177,7 @@ You: sql: CREATE TABLE test(id INT); INSERT INTO test VALUES(1),(2),(3); SELECT 
 Bot: 1
      2
      3
-     ✓ sql | 567ms
+      sql | 567ms
 ```
 
 ### Bash Script
@@ -188,7 +188,7 @@ Bot: Running at Tue Feb 10 12:34:56 PST 2026
      code-monitor
      code-runner
      install-code-runner
-     ✓ bash | 145ms
+      bash | 145ms
 ```
 
 ## Safety & Limits

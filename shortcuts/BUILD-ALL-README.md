@@ -59,11 +59,11 @@ Found 21 project(s) to build
 
 [2026-02-10 12:07:15] [START] bread: Building...
 [2026-02-10 12:07:16] [BUILD] bread: Detected npm project
-[2026-02-10 12:07:45] [✓ PASS] bread: Build successful
+[2026-02-10 12:07:45] [ PASS] bread: Build successful
 
 [2026-02-10 12:07:45] [START] NullOS: Building...
 [2026-02-10 12:07:46] [BUILD] NullOS: Detected Makefile project
-[2026-02-10 12:07:50] [✓ PASS] NullOS: Build successful
+[2026-02-10 12:07:50] [ PASS] NullOS: Build successful
 
 ...
 

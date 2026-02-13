@@ -4,13 +4,13 @@ A comprehensive CLI + optional web dashboard for monitoring OpenClaw gateway cro
 
 ## Features
 
-✅ **Real-time monitoring** — Watch all cron jobs with live status updates  
-✅ **Multiple views** — List, detail, stats, and watch modes  
-✅ **Job details** — Name, schedule, next run, last run + status  
-✅ **Export formats** — JSON, CSV, HTML  
-✅ **Web dashboard** — Auto-refreshing browser interface  
-✅ **Schedule parsing** — Human-readable cron expressions  
-✅ **Countdown timers** — "Time until next run"  
+ **Real-time monitoring** — Watch all cron jobs with live status updates  
+ **Multiple views** — List, detail, stats, and watch modes  
+ **Job details** — Name, schedule, next run, last run + status  
+ **Export formats** — JSON, CSV, HTML  
+ **Web dashboard** — Auto-refreshing browser interface  
+ **Schedule parsing** — Human-readable cron expressions  
+ **Countdown timers** — "Time until next run"  
 
 ## Installation
 
@@ -91,27 +91,27 @@ The dashboard auto-refreshes every 5 seconds.
 
 ### List View
 ```
-📋 Cron Jobs (21 total, 14 enabled)
+ Cron Jobs (21 total, 14 enabled)
 
-✅ [1] Morning briefing
+ [1] Morning briefing
    Schedule: Every: 09:00 (America/Vancouver)
    Next run: Feb 11, 2026, 09:00:00 AM (20h 52m)
-   Last run: Feb 10, 2026, 09:00:00 AM [✓]
+   Last run: Feb 10, 2026, 09:00:00 AM []
    Duration: 110324ms
    Agent: main, Target: main, Wake: now
 ```
 
 ### Statistics View
 ```
-📈 Cron Job Statistics
+ Cron Job Statistics
 
 Total Jobs: 21
-  ✅ Enabled: 14
+   Enabled: 14
   ⏸️  Disabled: 7
 
 Execution History:
-  ✓ Successful: 13
-  ✗ Failed: 0
+   Successful: 13
+   Failed: 0
   — Never run: 8
 
 ⏳ Next 5 Runs:
@@ -124,10 +124,10 @@ Execution History:
 
 ### Detail View
 ```
-📌 Job: Morning briefing
+ Job: Morning briefing
 
 ID: 12ca412a-1252-46bb-819d-eac84bc46412
-Status: ✅ Enabled
+Status:  Enabled
 Agent: main
 Session Target: main
 Wake Mode: now
@@ -138,11 +138,11 @@ Wake Mode: now
 ⏳ Next Run: Feb 11, 2026, 09:00:00 AM
   In: 20h 52m
 
-📊 Last Run: Feb 10, 2026, 09:00:00 AM
+ Last Run: Feb 10, 2026, 09:00:00 AM
   Status: ok
   Duration: 110324ms
 
-📦 Payload:
+ Payload:
 {
   "kind": "systemEvent",
   "text": "⏰ Good morning briefing time!..."
@@ -152,10 +152,10 @@ Wake Mode: now
 ## Understanding Job Status
 
 ### Status Indicators
-- ✅ **Enabled** — Job is active and will run on schedule
+-  **Enabled** — Job is active and will run on schedule
 - ⏸️ **Disabled** — Job is paused and won't run
-- ✓ **Last OK** — Last execution succeeded
-- ✗ **Last Error** — Last execution failed
+-  **Last OK** — Last execution succeeded
+-  **Last Error** — Last execution failed
 - — **Never** — Job has never run
 
 ### Schedule Types

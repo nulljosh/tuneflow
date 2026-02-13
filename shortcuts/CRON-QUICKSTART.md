@@ -1,4 +1,4 @@
-# 🚀 Cron Dashboard Quick Start
+#  Cron Dashboard Quick Start
 
 ## In 30 Seconds
 
@@ -14,7 +14,7 @@ cron-web-server
 # → http://localhost:8765
 ```
 
-Done! 🎉
+Done! 
 
 ## Most Common Commands
 
@@ -61,10 +61,10 @@ Add to `~/.zshrc` or `~/.bashrc` to make it permanent.
 ## Understanding the Output
 
 ### Status Icons
-- ✅ = Job is enabled and will run
+-  = Job is enabled and will run
 - ⏸️ = Job is disabled/paused
-- ✓ = Last run succeeded
-- ✗ = Last run failed
+-  = Last run succeeded
+-  = Last run failed
 
 ### Next Run Times
 - "20h 52m" = In 20 hours, 52 minutes
@@ -169,11 +169,11 @@ See `CRON-DASHBOARD-README.md` for complete reference.
 
 ## Tips
 
-💡 Use `watch` mode when debugging job timing
-💡 Use `stats` for a quick daily overview  
-💡 Use web server for a shared monitoring dashboard
-💡 Use `csv` export to track history in spreadsheets
-💡 Alias it in your shell for faster access
+ Use `watch` mode when debugging job timing
+ Use `stats` for a quick daily overview  
+ Use web server for a shared monitoring dashboard
+ Use `csv` export to track history in spreadsheets
+ Alias it in your shell for faster access
 
 ---
 

@@ -41,25 +41,25 @@
 - Shows helpful message about limitation
 
 **Error Messages:**
-- ✅ "Opened in Apple Music (tap play to start)"
-- ✅ "🔍 Opened Apple Music search for: [query]"
-- ✅ "❌ Not found in library"
+-  "Opened in Apple Music (tap play to start)"
+-  " Opened Apple Music search for: [query]"
+-  " Not found in library"
 
 ## Test Cases
 
 Run: `bash /Users/joshua/.openclaw/workspace/shortcuts/music-tests.sh`
 
 ### Automated Tests
-1. ✅ Apple Music URL (https) opens in Music app
-2. ✅ Apple Music URL (http) opens in Music app
-3. ✅ Search returns top 5 results
-4. ✅ Now playing shows current track
-5. ✅ Play from library works
-6. ✅ Info shows track details
-7. ✅ Volume get/set works
-8. ✅ Shuffle status works
-9. ✅ Invalid commands show usage
-10. ✅ Error messages are helpful
+1.  Apple Music URL (https) opens in Music app
+2.  Apple Music URL (http) opens in Music app
+3.  Search returns top 5 results
+4.  Now playing shows current track
+5.  Play from library works
+6.  Info shows track details
+7.  Volume get/set works
+8.  Shuffle status works
+9.  Invalid commands show usage
+10.  Error messages are helpful
 
 ### Manual Tests
 - [ ] Apple Music URLs open in Music app (not Chrome/Safari)
