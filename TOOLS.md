@@ -77,7 +77,15 @@ CLI: `~/.openclaw/workspace/shortcuts/music`
 - `music shuffle [on|off]` - Toggle/check shuffle mode
 - `music repeat [off|one|all]` - Set repeat mode
 
-Natural language: "play kid cudi", "love this", "what's playing?", "top 25", "genre hip-hop"
+**Natural language examples:**
+- "play kid cudi" / "put on some drake"
+- "love this" / "this song slaps"
+- "what's playing?" / "who is this?"
+- "top 25" / "show me my most played"
+- "genre hip-hop" / "play some rap"
+- "queue pursuit of happiness" / "add this to queue"
+- "turn it up" / "volume 80"
+- "shuffle on" / "random mode"
 
 ### Auto-DJ
 
