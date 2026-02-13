@@ -1,4 +1,11 @@
 {
+  "name": "tuneflow",
+  "version": "1.0.0",
+  "description": "Advanced Apple Music automation system with intelligent AI-powered features",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nulljosh/tuneflow"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
     "canvas": "^3.2.1"

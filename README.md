@@ -2,6 +2,7 @@
 
 Advanced Apple Music automation system with intelligent AI-powered features.
 
+
 ## Live Site
 
 **Portfolio:** [heyitsmejosh.com/automation](https://heyitsmejosh.com/automation)
@@ -21,26 +22,40 @@ Complete Apple Music automation built in 1 day.
 
 ### Installation
 
-All scripts included in this repo:
+All scripts organized in folders:
 
 ```bash
 # Main music control
-./music play kid cudi
-./music search kanye
-./music love
-./music top 25
+scripts/music play kid cudi
+scripts/music search kanye
+scripts/music love
+scripts/music top 25
 
 # Auto-DJ (intelligent background queueing)
-./dj start
-./dj status
-./dj stop
+scripts/dj start
+scripts/dj status
+scripts/dj stop
 ```
 
-### Scripts Included
+### Project Structure
 
-- **`music`** - 25+ commands for complete Apple Music control
-- **`dj`** - Auto-DJ control (start/stop/status)
-- **`auto-dj-enhanced.sh`** - Background daemon with smart queueing
+- **`scripts/`** - Music control scripts (music, dj, analyze_header.py)
+- **`shortcuts/`** - Automation shortcuts and enhanced auto-dj
+- **`generators/`** - 80s graphics generators (HTML/JS/Python + images)
+- **`zkml/`** - ZKML analysis tools
+- **`config/`** - Configuration files (.env.kimi, context-monitor.json)
+- **`docs/`** - Documentation and guides
+- **`skills/`** - Custom skills
+- **`lists/`** - Music and content lists
+- **`memory/`** - Agent memory storage
+- **`logs/`** - Session logs
+- **`archive/`** - Archived files
+
+### Main Scripts
+
+- **`scripts/music`** - 25+ commands for complete Apple Music control
+- **`scripts/dj`** - Auto-DJ control (start/stop/status)
+- **`shortcuts/auto-dj-enhanced.sh`** - Background daemon with smart queueing v2
 
 ### Tech Stack
 
