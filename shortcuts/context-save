@@ -1,0 +1,151 @@
+#!/bin/bash
+
+# OpenClaw Context Save - Preserve context before clearing
+# Saves conversation summaries to memory before triggering /new
+
+MEMORY_DIR="$HOME/.openclaw/workspace/memory/context-saves"
+CONFIG_FILE="$HOME/.openclaw/workspace/context-monitor.json"
+SESSIONS_FILE="$HOME/.openclaw/agents/main/sessions/sessions.json"
+
+# Get current session ID
+get_session_id() {
+    jq -r '."agent:main:main".sessionId' "$SESSIONS_FILE" 2>/dev/null || echo "unknown"
+}
+
+# Get timestamp
+get_timestamp() {
+    date +%Y-%m-%d-%H-%M
+}
+
+# Read config
+get_config() {
+    jq -r ".$1" "$CONFIG_FILE" 2>/dev/null || echo "null"
+}
+
+# Save context summary
+save_context() {
+    local mode=${1:-manual}
+    local session_id=$(get_session_id)
+    local timestamp=$(get_timestamp)
+    local save_file="$MEMORY_DIR/${timestamp}-${session_id:0:8}.md"
+
+    echo "Saving context to: $save_file"
+
+    # Create summary header
+    cat > "$save_file" <<EOF
+# OpenClaw Context Save
+**Session ID:** $session_id
+**Saved at:** $(date)
+**Mode:** $mode
+
+## Summary
+
+EOF
+
+    # Try to get conversation summary via OpenClaw
+    # Note: This is a placeholder - actual implementation would need to:
+    # 1. Query OpenClaw API for recent messages
+    # 2. Use /compact command to generate summary
+    # 3. Capture the output
+
+    # For now, add a note that manual summary is needed
+    cat >> "$save_file" <<EOF
+*Context save triggered automatically. Please manually review recent conversation and add key points here.*
+
+## Key Points
+- (Add important decisions here)
+- (Add action items here)
+- (Add relevant file paths/code discussed here)
+
+## Next Steps
+- (Add follow-up tasks here)
+
+---
+*Saved by context-monitor at $(get_usage_percent)% capacity*
+EOF
+
+    echo "Context saved to: $save_file"
+
+    # If auto mode and preserve context is enabled, trigger /new
+    if [ "$mode" = "auto" ]; then
+        local preserve=$(get_config "preserveContext")
+        local auto_new=$(get_config "autoNewAt")
+
+        if [ "$preserve" = "true" ] && [ "$auto_new" != "false" ]; then
+            echo "Triggering /new to clear context..."
+
+            # Send notification to trigger /new
+            local recipient=$(get_config "notifications.recipient")
+            if [ "$recipient" != "null" ]; then
+                imsg send "$recipient" "/new" 2>/dev/null || true
+            fi
+
+            # Wait for new session to be created
+            sleep 3
+
+            # Clean up old sessions for same peer (keep only newest)
+            cleanup_old_sessions
+
+            # Reset warning flags after new session starts
+            "$HOME/.openclaw/workspace/shortcuts/context-monitor" reset
+        fi
+    fi
+}
+
+# Get current usage percentage
+get_usage_percent() {
+    "$HOME/.openclaw/workspace/shortcuts/context-monitor" status | grep "Usage:" | awk '{print $2}'
+}
+
+# Clean up old sessions for the same peer (keep only the newest one)
+cleanup_old_sessions() {
+    echo "Cleaning up old sessions..."
+
+    # Get all sessions for the current peer
+    local current_peer=$(jq -r '."agent:main:main".origin.from' "$SESSIONS_FILE" 2>/dev/null)
+
+    if [ -z "$current_peer" ] || [ "$current_peer" = "null" ]; then
+        echo "Could not determine current peer, skipping cleanup"
+        return
+    fi
+
+    # Create a temporary file with cleaned sessions
+    local tmp_file=$(mktemp)
+
+    # Keep only the most recent session for each peer
+    # This removes old duplicate sessions
+    jq --arg peer "$current_peer" '
+        to_entries |
+        group_by(.value.origin.from) |
+        map(
+            if .[0].value.origin.from == $peer then
+                # For matching peer, keep only most recent (highest updatedAt)
+                sort_by(.value.updatedAt) | last
+            else
+                # Keep all sessions for other peers
+                .[]
+            end
+        ) |
+        from_entries
+    ' "$SESSIONS_FILE" > "$tmp_file"
+
+    # Replace sessions file if cleanup was successful
+    if [ -s "$tmp_file" ]; then
+        mv "$tmp_file" "$SESSIONS_FILE"
+        echo "Old sessions cleaned up - only keeping latest for $current_peer"
+    else
+        rm "$tmp_file"
+        echo "Cleanup failed, keeping original sessions"
+    fi
+}
+
+# Main command dispatcher
+case "${1:-manual}" in
+    auto|manual)
+        save_context "$1"
+        ;;
+    *)
+        echo "Usage: context-save {auto|manual}"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,58 @@
+#!/bin/bash
+# Context Guard - Prevents context overflow by monitoring message count
+
+CONTEXT_FILE="$HOME/.openclaw/context-state.json"
+MAX_MESSAGES=50  # Clear context after this many messages
+WARN_THRESHOLD=40  # Warn user at this count
+
+init_context_tracking() {
+    if [ ! -f "$CONTEXT_FILE" ]; then
+        echo '{"message_count": 0, "last_reset": '$(date +%s)'}' > "$CONTEXT_FILE"
+    fi
+}
+
+get_message_count() {
+    cat "$CONTEXT_FILE" | jq -r '.message_count // 0'
+}
+
+increment_count() {
+    local tmp=$(mktemp)
+    local count=$(get_message_count)
+    count=$((count + 1))
+    jq ".message_count = $count" "$CONTEXT_FILE" > "$tmp" && mv "$tmp" "$CONTEXT_FILE"
+    echo $count
+}
+
+reset_count() {
+    local tmp=$(mktemp)
+    jq ".message_count = 0 | .last_reset = $(date +%s)" "$CONTEXT_FILE" > "$tmp" && mv "$tmp" "$CONTEXT_FILE"
+}
+
+check_context() {
+    init_context_tracking
+    local count=$(increment_count)
+
+    if [ $count -ge $MAX_MESSAGES ]; then
+        echo "⚠️  Context limit reached ($count messages). Use /new to clear context." >&2
+        # Could auto-send notification here
+    elif [ $count -ge $WARN_THRESHOLD ]; then
+        echo "⚠️  Context getting full ($count/$MAX_MESSAGES messages). Consider using /new soon." >&2
+    fi
+}
+
+case "${1:-check}" in
+    check)
+        check_context
+        ;;
+    reset)
+        reset_count
+        echo "Context counter reset"
+        ;;
+    count)
+        echo "Current message count: $(get_message_count)"
+        ;;
+    *)
+        echo "Usage: $0 {check|reset|count}"
+        exit 1
+        ;;
+esac

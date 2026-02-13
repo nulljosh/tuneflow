@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# ensure-all-synced: Initialize git, create GitHub repos, and push for ALL Code projects
+
+CODE_DIR=~/Documents/Code
+GITHUB_USER=nulljosh
+
+cd "$CODE_DIR" || exit 1
+
+for dir in */; do
+    dir=${dir%/}
+
+    # Skip if not a directory
+    [ ! -d "$dir" ] && continue
+
+    echo "=== Processing $dir ==="
+    cd "$CODE_DIR/$dir" || continue
+
+    # 1. Git init if needed
+    if [ ! -d ".git" ]; then
+        echo "  Initializing git..."
+        git init
+        git add .
+        git commit -m "Initial commit
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+    fi
+
+    # 2. Check for GitHub remote
+    REMOTE=$(git remote get-url origin 2>/dev/null || echo "")
+
+    if [ -z "$REMOTE" ]; then
+        # No remote - create GitHub repo
+        echo "  Creating GitHub repo..."
+        gh repo create "$GITHUB_USER/$dir" --public --source=. --remote=origin --push 2>&1 | grep -v "parse error" || true
+    elif [[ "$REMOTE" == *"github.com/$GITHUB_USER"* ]]; then
+        # Has nulljosh remote - ensure it's pushed
+        echo "  Pushing to GitHub..."
+        BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+        git push -u origin "$BRANCH" 2>&1 | grep -v "parse error\|up-to-date" || true
+    else
+        # Remote is not nulljosh (fork/other org)
+        echo "  Skipping (external remote: $REMOTE)"
+    fi
+
+    cd "$CODE_DIR"
+done
+
+echo ""
+echo "=== All projects synced ==="

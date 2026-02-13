@@ -1,0 +1,22 @@
+#!/bin/bash
+# Starbucks CLI
+
+case "$1" in
+  stores)
+    shift
+    LAT=${1:-49.106}
+    LON=${2:--122.550}
+    echo "☕ Finding Starbucks near: $LAT, $LON"
+    curl -s "https://www.starbucks.com/api/v1/stores/nearby?lat=$LAT&lng=$LON&limit=10" \
+      -H "Accept: application/json" | jq -r '.stores[] | "📍 \(.name)\n   \(.address.streetAddressLine1)\n   \(.address.city), \(.address.postalCode)\n   📞 \(.phoneNumber)\n"' 2>/dev/null || echo "API might need auth/different endpoint"
+    ;;
+  menu)
+    echo "☕ Starbucks Menu (API needs reverse engineering)"
+    echo "Try: https://www.starbucks.ca/menu"
+    ;;
+  *)
+    echo "☕ Starbucks commands:"
+    echo "  starbucks stores [lat] [lon] - Find nearby stores"
+    echo "  starbucks menu               - Show menu (needs work)"
+    ;;
+esac

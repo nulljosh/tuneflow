@@ -1,0 +1,95 @@
+#!/bin/bash
+# Safe OpenClaw command wrapper with retry logic and error handling
+
+set -e
+
+RETRY_COUNT=3
+RETRY_DELAY=2
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1" >&2
+}
+
+success() {
+    echo -e "${GREEN}[OK]${NC} $1" >&2
+}
+
+# Check if gateway is running
+check_gateway() {
+    if ! pgrep -f "openclaw.*gateway" > /dev/null; then
+        warn "Gateway not running, attempting restart..."
+        openclaw gateway restart
+        sleep 3
+        return $?
+    fi
+    return 0
+}
+
+# Execute openclaw command with retry logic
+safe_execute() {
+    local cmd="$@"
+    local attempt=1
+
+    while [ $attempt -le $RETRY_COUNT ]; do
+        if [ $attempt -gt 1 ]; then
+            warn "Retry attempt $attempt/$RETRY_COUNT..."
+            sleep $RETRY_DELAY
+        fi
+
+        # Ensure gateway is running
+        if ! check_gateway; then
+            error "Gateway check failed"
+            attempt=$((attempt + 1))
+            continue
+        fi
+
+        # Execute command
+        if openclaw "$@" 2>&1; then
+            success "Command completed successfully"
+            return 0
+        else
+            local exit_code=$?
+            error "Command failed with exit code $exit_code"
+
+            # Check for specific errors
+            if [ $exit_code -eq 1 ]; then
+                # Permission or API error - run health check
+                warn "Running health check..."
+                ~/.openclaw/workspace/shortcuts/health-monitor check
+            fi
+
+            attempt=$((attempt + 1))
+        fi
+    done
+
+    error "Command failed after $RETRY_COUNT attempts"
+    return 1
+}
+
+# Usage
+if [ $# -eq 0 ]; then
+    echo "Usage: openclaw-safe <openclaw-command> [args...]"
+    echo ""
+    echo "Examples:"
+    echo "  openclaw-safe gateway status"
+    echo "  openclaw-safe memory index"
+    echo "  openclaw-safe doctor --fix"
+    echo ""
+    echo "This wrapper adds:"
+    echo "  - Automatic gateway restart if down"
+    echo "  - Retry logic (3 attempts)"
+    echo "  - Health checks on failures"
+    exit 1
+fi
+
+safe_execute "$@"

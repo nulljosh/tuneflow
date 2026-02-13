@@ -1,0 +1,231 @@
+#!/usr/bin/env python3
+
+"""
+project-status: Dashboard of all projects with progress & difficulty ranking
+
+Shows:
+  - All repos in ~/Documents/Code/
+  - Progress estimate (LOC, commits, last activity)
+  - Difficulty ranking (easiest → hardest)
+  - Completion status
+"""
+
+import os
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+# Colors
+RED = '\033[0;31m'
+GREEN = '\033[0;32m'
+YELLOW = '\033[1;33m'
+BLUE = '\033[0;34m'
+CYAN = '\033[0;36m'
+MAGENTA = '\033[0;35m'
+NC = '\033[0m'
+
+CODE_DIR = Path.home() / 'Documents' / 'Code'
+
+
+def run_git(cmd, cwd):
+    """Run git command and return output"""
+    try:
+        result = subprocess.run(
+            f'git {cmd}',
+            shell=True,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.stdout.strip() if result.returncode == 0 else None
+    except:
+        return None
+
+
+def count_loc(project_dir):
+    """Count lines of code (excluding node_modules, venv, target)"""
+    extensions = ['*.rs', '*.c', '*.cpp', '*.js', '*.ts', '*.py', '*.go']
+    total = 0
+
+    for ext in extensions:
+        for file in project_dir.rglob(ext):
+            # Skip common build/dependency dirs
+            if any(x in file.parts for x in ['node_modules', 'venv', 'target', '__pycache__', 'dist', 'build']):
+                continue
+
+            try:
+                with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                    total += len(f.readlines())
+            except:
+                pass
+
+    return total
+
+
+def calculate_difficulty(project_dir):
+    """Calculate difficulty score (0-200)"""
+    score = 0
+
+    # Base score on project type
+    if (project_dir / 'Cargo.toml').exists():
+        score += 50  # Rust (systems-level)
+
+    if ((project_dir / 'Makefile').exists() and (project_dir / 'kernel.c').exists()) or 'NullOS' in str(project_dir):
+        score += 100  # OS/kernel projects
+
+    if (project_dir / 'package.json').exists():
+        score += 20  # Node.js
+
+    if (project_dir / 'setup.py').exists() or (project_dir / 'requirements.txt').exists():
+        score += 15  # Python
+
+    if (project_dir / 'go.mod').exists():
+        score += 40  # Go
+
+    # Complexity indicators
+    if (project_dir / 'docker-compose.yml').exists():
+        score += 15
+
+    if (project_dir / 'Dockerfile').exists():
+        score += 10
+
+    if (project_dir / 'src').exists() and (project_dir / 'tests').exists():
+        score += 10
+
+    # Factor in LOC
+    loc = count_loc(project_dir)
+    score += loc // 100  # 100 LOC = +1 point
+
+    return score
+
+
+def estimate_progress(project_dir):
+    """Estimate progress percentage (0-100%)"""
+    progress = 0
+
+    # Has README
+    if (project_dir / 'README.md').exists():
+        progress += 10
+
+    # Has tests
+    if (project_dir / 'tests').exists() or (project_dir / 'test').exists():
+        progress += 15
+
+    # Has docs
+    if (project_dir / 'docs').exists():
+        progress += 10
+
+    # Has package config
+    if any((project_dir / f).exists() for f in ['package.json', 'Cargo.toml', 'setup.py', 'go.mod']):
+        progress += 10
+
+    # Commits
+    commits_str = run_git('rev-list --count HEAD', project_dir)
+    commits = int(commits_str) if commits_str and commits_str.isdigit() else 0
+
+    if commits > 50:
+        progress += 30
+    elif commits > 20:
+        progress += 20
+    elif commits > 5:
+        progress += 10
+
+    # LOC
+    loc = count_loc(project_dir)
+
+    if loc > 5000:
+        progress += 25
+    elif loc > 1000:
+        progress += 15
+    elif loc > 100:
+        progress += 10
+
+    return min(progress, 100)
+
+
+def get_status(progress):
+    """Get status badge"""
+    if progress >= 80:
+        return f"{GREEN}✓ DONE{NC}"
+    elif progress >= 50:
+        return f"{YELLOW}⏳ ACTIVE{NC}"
+    elif progress >= 20:
+        return f"{CYAN}🔨 BUILDING{NC}"
+    else:
+        return f"{MAGENTA}📋 PLANNED{NC}"
+
+
+def get_difficulty_icon(difficulty):
+    """Get difficulty indicator"""
+    if difficulty < 30:
+        return f"{GREEN}●{NC}"
+    elif difficulty < 60:
+        return f"{YELLOW}●●{NC}"
+    elif difficulty < 100:
+        return f"{RED}●●●{NC}"
+    else:
+        return f"{MAGENTA}●●●●{NC}"
+
+
+def main():
+    print(f"{BLUE}╔════════════════════════════════════════════════════════════════════════════════╗{NC}")
+    print(f"{BLUE}║{NC}  {CYAN}PROJECT STATUS DASHBOARD{NC} - {datetime.now().strftime('%Y-%m-%d %H:%M')}                            {BLUE}║{NC}")
+    print(f"{BLUE}╚════════════════════════════════════════════════════════════════════════════════╝{NC}\n")
+
+    # Collect all projects
+    projects = []
+
+    for project_dir in CODE_DIR.iterdir():
+        if not project_dir.is_dir() or not (project_dir / '.git').exists():
+            continue
+
+        project_name = project_dir.name
+
+        # Calculate metrics
+        difficulty = calculate_difficulty(project_dir)
+        progress = estimate_progress(project_dir)
+        loc = count_loc(project_dir)
+
+        commits_str = run_git('rev-list --count HEAD', project_dir)
+        commits = int(commits_str) if commits_str and commits_str.isdigit() else 0
+
+        last_commit = run_git('log -1 --format="%ar"', project_dir) or 'never'
+
+        projects.append({
+            'name': project_name,
+            'difficulty': difficulty,
+            'progress': progress,
+            'loc': loc,
+            'commits': commits,
+            'last_commit': last_commit
+        })
+
+    # Sort by difficulty (easiest first)
+    projects.sort(key=lambda x: x['difficulty'])
+
+    # Print table header
+    print(f"{BLUE}{'PROJECT':<28} {'STATUS':<20} {'PROGRESS':<8} {'DIFF':<8} {'LOC':<10} {'COMMITS':<10} {'LAST ACTIVITY'}{NC}")
+    print("─" * 100)
+
+    # Print projects
+    for p in projects:
+        status = get_status(p['progress'])
+        diff_icon = get_difficulty_icon(p['difficulty'])
+
+        print(f"{p['name']:<28} {status:<28} {p['progress']:>3}%     {diff_icon:<16} {p['loc']:<10} {p['commits']:<10} {p['last_commit']}")
+
+    # Summary
+    done_count = sum(1 for p in projects if p['progress'] >= 80)
+    active_count = sum(1 for p in projects if 50 <= p['progress'] < 80)
+    building_count = sum(1 for p in projects if 20 <= p['progress'] < 50)
+    planned_count = sum(1 for p in projects if p['progress'] < 20)
+
+    print(f"\n{BLUE}Summary:{NC}")
+    print(f"  {GREEN}✓ Done:{NC} {done_count} | {YELLOW}⏳ Active:{NC} {active_count} | {CYAN}🔨 Building:{NC} {building_count} | {MAGENTA}📋 Planned:{NC} {planned_count} | {BLUE}Total:{NC} {len(projects)}")
+
+    print(f"\n{CYAN}Difficulty Legend:{NC} {GREEN}● Easy{NC} | {YELLOW}●● Medium{NC} | {RED}●●● Hard{NC} | {MAGENTA}●●●● Expert{NC}")
+
+
+if __name__ == '__main__':
+    main()

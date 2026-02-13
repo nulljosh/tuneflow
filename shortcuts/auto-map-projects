@@ -1,0 +1,35 @@
+#!/bin/bash
+# Auto-generate SVG mind maps for all Code projects
+
+PROJECT_MAPPER="$HOME/.openclaw/workspace/skills/project-mapper/bin/project-mapper"
+
+# Find all projects in Code folder with git repos
+for PROJECT in ~/Documents/Code/*/.git; do
+  DIR=$(dirname "$PROJECT")
+  PROJECT_NAME=$(basename "$DIR")
+  
+  echo "📊 Checking $PROJECT_NAME..."
+  
+  cd "$DIR" || continue
+  
+  # Skip if map.svg or architecture.svg already exists and is recent
+  if [ -f "map.svg" ] || [ -f "architecture.svg" ]; then
+    NEWEST=$(find . -name "*.svg" -type f -mtime -7 | head -1)
+    if [ -n "$NEWEST" ]; then
+      echo "  ✓ SVG is recent, skipping"
+      continue
+    fi
+  fi
+  
+  echo "  🔨 Generating mind map..."
+  "$PROJECT_MAPPER" .
+  
+  # If project-mapper didn't create one, check for existing diagram
+  if [ ! -f "map.svg" ] && [ ! -f "architecture.svg" ]; then
+    echo "  ⚠️  No diagram generated"
+  else
+    echo "  ✅ Done"
+  fi
+done
+
+echo "🎯 All projects checked"

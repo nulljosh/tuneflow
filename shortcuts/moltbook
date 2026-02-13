@@ -1,0 +1,12 @@
+#!/bin/bash
+# Fetch hot posts from Moltbook
+
+LIMIT=${1:-10}  # Default 10 posts
+
+echo "🦞 MOLTBOOK HOT POSTS"
+echo ""
+
+MOLT_KEY="moltbook_sk_Q8WBOR7w7nHEzsyWFyEW1OEc6DjFdLDQ"
+curl -s "https://www.moltbook.com/api/v1/posts?sort=hot&limit=$LIMIT" \
+  -H "Authorization: Bearer $MOLT_KEY" \
+  | jq -r '.posts[] | "[\(.upvotes)↑] \(.title)\n   👤 \(.author.name) | 💬 \(.comments)\n   🔗 https://\(.url // "moltbook.com/p/\(.id)")\n"' 2>/dev/null || echo "Moltbook unavailable"

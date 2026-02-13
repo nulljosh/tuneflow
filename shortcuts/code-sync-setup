@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# Code Sync Daemon Setup Script
+# Interactive setup for the background code sync daemon
+
+set -e
+
+echo "===================================="
+echo "  Code Sync Daemon Setup"
+echo "===================================="
+echo ""
+
+# Check if API key is already set
+if [ -n "$ANTHROPIC_API_KEY" ]; then
+  echo "✓ ANTHROPIC_API_KEY is already set in environment"
+  echo ""
+else
+  echo "⚠️  ANTHROPIC_API_KEY not found in environment"
+  echo ""
+  echo "The daemon uses Claude Haiku for generating commit messages."
+  echo "You need to configure your Anthropic API key."
+  echo ""
+  echo "Options:"
+  echo "  1. Add to ~/.zshrc (recommended for manual starts)"
+  echo "  2. Add to Launch Agent plist (recommended for auto-start)"
+  echo "  3. Skip (I'll do it manually)"
+  echo ""
+  read -p "Choose option [1-3]: " choice
+
+  case $choice in
+    1)
+      read -p "Enter your Anthropic API key: " api_key
+      echo "" >> ~/.zshrc
+      echo "# Code Sync Daemon API Key" >> ~/.zshrc
+      echo "export ANTHROPIC_API_KEY=\"$api_key\"" >> ~/.zshrc
+      echo "✓ Added to ~/.zshrc"
+      echo "  Run: source ~/.zshrc"
+      ;;
+    2)
+      read -p "Enter your Anthropic API key: " api_key
+
+      # Update Launch Agent plist
+      plist_file="$HOME/Library/LaunchAgents/com.joshua.code-sync.plist"
+
+      # Create backup
+      cp "$plist_file" "$plist_file.backup"
+
+      # Add API key to plist using sed
+      if grep -q "ANTHROPIC_API_KEY" "$plist_file"; then
+        echo "⚠️  API key already exists in plist, skipping..."
+      else
+        # Insert before </dict> under EnvironmentVariables
+        sed -i '' "/<key>HOME<\/key>/a\\
+    <key>ANTHROPIC_API_KEY<\/key>\\
+    <string>$api_key<\/string>
+" "$plist_file"
+        echo "✓ Added to Launch Agent plist"
+        echo "  Restart daemon to apply: launchctl stop com.joshua.code-sync && launchctl start com.joshua.code-sync"
+      fi
+      ;;
+    3)
+      echo "⚠️  Skipping API key setup"
+      echo "  Add manually to ~/.zshrc or ~/Library/LaunchAgents/com.joshua.code-sync.plist"
+      ;;
+  esac
+  echo ""
+fi
+
+# Check GitHub CLI
+if ! command -v gh &> /dev/null; then
+  echo "⚠️  GitHub CLI (gh) not found"
+  echo "  Install with: brew install gh"
+  echo ""
+else
+  echo "✓ GitHub CLI (gh) installed"
+  echo ""
+fi
+
+# Check if repos have remotes
+echo "Checking GitHub remotes..."
+echo ""
+~/.openclaw/workspace/shortcuts/setup-remotes.sh | tail -10
+echo ""
+
+# Ask about Launch Agent
+echo "Do you want to load the Launch Agent now?"
+echo "(This will auto-start the daemon on login)"
+read -p "[y/N]: " load_agent
+
+if [[ $load_agent =~ ^[Yy]$ ]]; then
+  launchctl load ~/Library/LaunchAgents/com.joshua.code-sync.plist 2>/dev/null || echo "Already loaded"
+  launchctl start com.joshua.code-sync
+  echo "✓ Launch Agent loaded and started"
+  echo ""
+  sleep 2
+  ~/.openclaw/workspace/shortcuts/code-sync status
+else
+  echo "⚠️  Skipped Launch Agent setup"
+  echo "  Load manually with: launchctl load ~/Library/LaunchAgents/com.joshua.code-sync.plist"
+fi
+
+echo ""
+echo "===================================="
+echo "  Setup Complete!"
+echo "===================================="
+echo ""
+echo "Usage:"
+echo "  openclaw run code-sync-start   - Start daemon"
+echo "  openclaw run code-sync-stop    - Stop daemon"
+echo "  openclaw run code-sync-status  - Check status"
+echo ""
+echo "Logs:"
+echo "  tail -f ~/.openclaw/logs/code-sync.log"
+echo ""
+echo "Docs:"
+echo "  ~/.openclaw/workspace/shortcuts/CODE-SYNC-README.md"
+echo ""

@@ -1,0 +1,88 @@
+#!/bin/bash
+
+echo "🔧 Auto-configuring API key for code-sync daemon..."
+echo ""
+
+# Extract API key from OpenClaw auth profiles
+API_KEY=$(jq -r '.profiles["anthropic:default"].token' ~/.openclaw/agents/main/agent/auth-profiles.json 2>/dev/null)
+
+if [ -z "$API_KEY" ] || [ "$API_KEY" = "null" ]; then
+  echo "❌ Could not find Anthropic API key in OpenClaw config"
+  echo "   Expected location: ~/.openclaw/agents/main/agent/auth-profiles.json"
+  exit 1
+fi
+
+echo "✓ Found API key: ${API_KEY:0:20}..."
+echo ""
+
+# Add to ~/.zshrc if not already there
+if grep -q "ANTHROPIC_API_KEY" ~/.zshrc; then
+  echo "⚠️  API key already in ~/.zshrc, updating..."
+  # Remove old line and add new one
+  sed -i '' '/export ANTHROPIC_API_KEY=/d' ~/.zshrc
+  echo "export ANTHROPIC_API_KEY=\"$API_KEY\"" >> ~/.zshrc
+  echo "✓ Updated in ~/.zshrc"
+else
+  echo "" >> ~/.zshrc
+  echo "# Code-Sync Daemon API Key (auto-configured)" >> ~/.zshrc
+  echo "export ANTHROPIC_API_KEY=\"$API_KEY\"" >> ~/.zshrc
+  echo "✓ Added to ~/.zshrc"
+fi
+
+# Update Launch Agent plist
+PLIST_FILE="$HOME/Library/LaunchAgents/com.joshua.code-sync.plist"
+
+if [ -f "$PLIST_FILE" ]; then
+  # Create backup
+  cp "$PLIST_FILE" "$PLIST_FILE.backup"
+
+  # Check if key already exists
+  if grep -q "ANTHROPIC_API_KEY" "$PLIST_FILE"; then
+    # Replace existing key
+    sed -i '' "s|<string>sk-ant-.*</string>|<string>$API_KEY</string>|" "$PLIST_FILE"
+    echo "✓ Updated API key in Launch Agent plist"
+  else
+    # Add new key entry after HOME
+    awk -v key="$API_KEY" '
+      /<key>HOME<\/key>/ {
+        print
+        getline
+        print
+        print "    <key>ANTHROPIC_API_KEY</key>"
+        print "    <string>" key "</string>"
+        next
+      }
+      {print}
+    ' "$PLIST_FILE" > "$PLIST_FILE.tmp" && mv "$PLIST_FILE.tmp" "$PLIST_FILE"
+    echo "✓ Added API key to Launch Agent plist"
+  fi
+else
+  echo "⚠️  Launch Agent plist not found, skipping..."
+fi
+
+echo ""
+echo "🔄 Restarting daemon to apply changes..."
+
+# Restart daemon
+launchctl stop com.joshua.code-sync 2>/dev/null
+sleep 1
+launchctl start com.joshua.code-sync
+
+echo "✓ Daemon restarted"
+echo ""
+
+# Verify
+sleep 2
+if command -v code-sync &> /dev/null; then
+  code-sync status | tail -5
+fi
+
+echo ""
+echo "✅ Configuration complete!"
+echo ""
+echo "Next time you make code changes, the daemon will use AI to generate"
+echo "intelligent commit messages like:"
+echo '  "Add login validation to user form"'
+echo '  "Fix memory leak in background worker"'
+echo ""
+echo "Cost: ~$0.01-0.05/day (~$18/year)"

@@ -6,6 +6,7 @@
 - **Pronouns:** 
 - **Timezone:** America/Vancouver (PST)
 - **Location:** Brookswood, Langley, BC
+- **Email:** jatrommel@gmail.com
 - **Lifestyle:** Daily weed smoker
 - **Communication:** Prefers tldr / quick answers. Not into extra setup steps. Sends rapid-fire messages.
 

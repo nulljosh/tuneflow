@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+
+"""
+init-project: Automatically set up a new project with git, GitHub, docs
+
+Usage:
+    init-project <project-name>
+
+Creates:
+    - Git repo with .gitignore
+    - GitHub remote repo
+    - README.md template
+    - CLAUDE.md template
+    - architecture.svg placeholder
+    - TODO.md
+    - Initial commit + push
+"""
+
+import sys
+import subprocess
+import os
+from pathlib import Path
+
+CODE_DIR = Path.home() / 'Documents' / 'Code'
+GITHUB_USER = 'nulljosh'
+
+
+def run(cmd, cwd=None, check=True):
+    """Run shell command"""
+    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    if check and result.returncode != 0:
+        print(f"❌ Error: {result.stderr}")
+        sys.exit(1)
+    return result.stdout.strip()
+
+
+def detect_project_type(project_dir):
+    """Detect project type based on files"""
+    if (project_dir / 'package.json').exists():
+        return 'node'
+    elif (project_dir / 'Cargo.toml').exists():
+        return 'rust'
+    elif (project_dir / 'requirements.txt').exists() or (project_dir / 'setup.py').exists():
+        return 'python'
+    elif (project_dir / 'go.mod').exists():
+        return 'go'
+    elif (project_dir / 'Makefile').exists():
+        return 'c'
+    else:
+        return 'generic'
+
+
+def create_readme(project_dir, project_name, project_type):
+    """Create README.md template"""
+
+    # Detect tech stack
+    tech_stack = {
+        'node': '- **Node.js** - Runtime\n- **npm** - Package manager',
+        'rust': '- **Rust** - Systems programming language\n- **Cargo** - Build system',
+        'python': '- **Python 3** - Programming language\n- **pip** - Package manager',
+        'go': '- **Go** - Programming language',
+        'c': '- **C/C++** - Systems programming\n- **Make** - Build system',
+        'generic': '- Add tech stack here'
+    }.get(project_type, '- Add tech stack here')
+
+    # Detect description from package.json if exists
+    description = f"{project_name.title()} project"
+    if (project_dir / 'package.json').exists():
+        import json
+        with open(project_dir / 'package.json') as f:
+            data = json.load(f)
+            description = data.get('description', description)
+
+    readme = f"""# {project_name}
+
+**{description}**
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+## 🎯 What is {project_name}?
+
+<!-- Add project description here -->
+
+## 🗺️ Architecture
+
+See [architecture.svg](architecture.svg) for visual diagram.
+
+## 🚀 Quick Start
+
+```bash
+# Add setup instructions
+```
+
+## 🛠️ Tech Stack
+
+{tech_stack}
+
+## 📁 Project Structure
+
+```
+{project_name}/
+├── src/           # Source code
+├── docs/          # Documentation
+└── README.md
+```
+
+## 📝 TODO
+
+See [TODO.md](TODO.md) for project roadmap.
+
+## 🤝 Contributing
+
+Open a PR or issue!
+
+## 📜 License
+
+MIT License
+
+---
+
+Built by [@{GITHUB_USER}](https://github.com/{GITHUB_USER})
+"""
+
+    with open(project_dir / 'README.md', 'w') as f:
+        f.write(readme)
+
+
+def create_claude_md(project_dir, project_name, project_type):
+    """Create CLAUDE.md template"""
+
+    dev_commands = {
+        'node': 'npm run dev      # Start dev server\nnpm run build    # Production build\nnpm test         # Run tests',
+        'rust': 'cargo run        # Run project\ncargo build --release  # Production build\ncargo test       # Run tests',
+        'python': 'python main.py   # Run project\npython -m pytest # Run tests',
+        'go': 'go run .         # Run project\ngo build        # Build binary\ngo test ./...   # Run tests',
+        'c': 'make            # Build project\nmake run        # Run project\nmake test       # Run tests',
+        'generic': '# Add commands here'
+    }.get(project_type, '# Add commands here')
+
+    claude_md = f"""# {project_name} - Claude Instructions
+
+## Project Overview
+<!-- Brief description of what this project does -->
+
+## Tech Stack
+<!-- List technologies, frameworks, libraries -->
+
+## Development Commands
+```bash
+{dev_commands}
+```
+
+## Architecture
+<!-- Describe main components and how they interact -->
+
+## Key Files
+<!-- List important files and their purposes -->
+
+## Design Patterns
+<!-- Document architectural decisions and patterns -->
+
+## Common Tasks
+
+### Task 1
+<!-- Step-by-step instructions -->
+
+### Task 2
+<!-- Step-by-step instructions -->
+
+## Deployment
+<!-- How to deploy this project -->
+
+## TODO / Roadmap
+See [TODO.md](TODO.md)
+
+## Known Issues
+<!-- List known bugs or limitations -->
+
+## Style Guide
+<!-- Code style preferences, naming conventions -->
+
+## Testing
+<!-- How to run tests, what to test -->
+
+## Notes
+<!-- Any other important information -->
+"""
+
+    with open(project_dir / 'CLAUDE.md', 'w') as f:
+        f.write(claude_md)
+
+
+def create_architecture_svg(project_dir, project_name):
+    """Create architecture.svg placeholder"""
+
+    svg = f"""<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .box {{ fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }}
+      .title {{ fill: #60a5fa; font-family: 'SF Mono', monospace; font-size: 16px; font-weight: bold; }}
+      .text {{ fill: #cbd5e1; font-family: 'SF Mono', monospace; font-size: 12px; }}
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle" font-size="20">{project_name} Architecture</text>
+
+  <!-- Main Component -->
+  <rect x="250" y="100" width="300" height="100" class="box" rx="5"/>
+  <text x="400" y="135" class="title" text-anchor="middle">Main Component</text>
+  <text x="400" y="160" class="text" text-anchor="middle">Add architecture details here</text>
+
+  <!-- Placeholder text -->
+  <text x="400" y="250" class="text" text-anchor="middle">TODO: Create detailed architecture diagram</text>
+</svg>
+"""
+
+    with open(project_dir / 'architecture.svg', 'w') as f:
+        f.write(svg)
+
+
+def create_todo_md(project_dir, project_name):
+    """Create TODO.md"""
+
+    todo = f"""# {project_name} - TODO
+
+## MVP (Minimum Viable Product)
+- [ ] Core feature 1
+- [ ] Core feature 2
+- [ ] Basic tests
+- [ ] Documentation
+
+## v1.0
+- [ ] Feature X
+- [ ] Feature Y
+- [ ] Full test coverage
+
+## Future
+- [ ] Nice-to-have feature
+- [ ] Performance optimization
+
+## Done
+- [x] Project initialization
+"""
+
+    with open(project_dir / 'TODO.md', 'w') as f:
+        f.write(todo)
+
+
+def create_gitignore(project_dir, project_type):
+    """Create .gitignore"""
+
+    gitignore_templates = {
+        'node': 'node_modules/\ndist/\n.env\n*.log\n.DS_Store',
+        'rust': 'target/\nCargo.lock\n*.pdb',
+        'python': 'venv/\n__pycache__/\n*.pyc\n.pytest_cache/\n.env',
+        'go': 'bin/\n*.exe\n*.test',
+        'c': '*.o\n*.out\na.out\nbuild/',
+        'generic': '.DS_Store\n*.log\n.env'
+    }
+
+    gitignore = gitignore_templates.get(project_type, gitignore_templates['generic'])
+
+    with open(project_dir / '.gitignore', 'w') as f:
+        f.write(gitignore)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: init-project <project-name>")
+        sys.exit(1)
+
+    project_name = sys.argv[1]
+    project_dir = CODE_DIR / project_name
+
+    if not project_dir.exists():
+        print(f"❌ Project directory not found: {project_dir}")
+        print(f"Create it first: mkdir -p {project_dir}")
+        sys.exit(1)
+
+    print(f"🚀 Initializing project: {project_name}")
+
+    # Detect project type
+    project_type = detect_project_type(project_dir)
+    print(f"📦 Detected project type: {project_type}")
+
+    # Create .gitignore if doesn't exist
+    if not (project_dir / '.gitignore').exists():
+        print("📝 Creating .gitignore...")
+        create_gitignore(project_dir, project_type)
+
+    # Init git if not already
+    if not (project_dir / '.git').exists():
+        print("🔧 Initializing git...")
+        run('git init', cwd=project_dir)
+
+    # Create docs
+    print("📄 Creating documentation...")
+
+    if not (project_dir / 'README.md').exists() or (project_dir / 'README.md').stat().st_size < 100:
+        create_readme(project_dir, project_name, project_type)
+        print("  ✓ README.md")
+
+    if not (project_dir / 'CLAUDE.md').exists():
+        create_claude_md(project_dir, project_name, project_type)
+        print("  ✓ CLAUDE.md")
+
+    if not (project_dir / 'architecture.svg').exists():
+        create_architecture_svg(project_dir, project_name)
+        print("  ✓ architecture.svg")
+
+    if not (project_dir / 'TODO.md').exists():
+        create_todo_md(project_dir, project_name)
+        print("  ✓ TODO.md")
+
+    # Commit
+    print("💾 Committing initial docs...")
+    run('git add .', cwd=project_dir)
+
+    commit_msg = f"""Initialize project documentation
+
+- README.md with project overview
+- CLAUDE.md with development instructions
+- architecture.svg placeholder
+- TODO.md roadmap
+- .gitignore for {project_type}
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"""
+
+    run(f'git commit -m "{commit_msg}"', cwd=project_dir, check=False)
+
+    # Create GitHub repo if doesn't exist
+    print("🐙 Checking GitHub repo...")
+    remote = run('git remote get-url origin', cwd=project_dir, check=False)
+
+    if not remote:
+        print(f"📤 Creating GitHub repo: {GITHUB_USER}/{project_name}")
+        run(f'gh repo create {GITHUB_USER}/{project_name} --public --source=. --remote=origin', cwd=project_dir)
+
+    # Push
+    print("🚀 Pushing to GitHub...")
+    branch = run('git rev-parse --abbrev-ref HEAD', cwd=project_dir)
+    run(f'git push -u origin {branch}', cwd=project_dir)
+
+    print(f"\n✅ Project initialized successfully!")
+    print(f"📍 Location: {project_dir}")
+    print(f"🌐 GitHub: https://github.com/{GITHUB_USER}/{project_name}")
+
+
+if __name__ == '__main__':
+    main()

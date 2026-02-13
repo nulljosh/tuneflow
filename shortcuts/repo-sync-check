@@ -1,0 +1,88 @@
+#!/bin/bash
+# repo-sync-check: Verify GitHub repos are synced with ~/Documents/Code
+# Checks for repos that exist on GitHub but not locally, and vice versa
+
+CODE_DIR="$HOME/Documents/Code"
+GITHUB_USER="nulljosh"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}=== Repo Sync Check ===${NC}\n"
+
+# Get local repos (dirs with .git)
+echo "📂 Scanning local repos in $CODE_DIR..."
+LOCAL_REPOS=$(cd "$CODE_DIR" && find . -maxdepth 2 -type d -name ".git" 2>/dev/null | sed 's/\.\///g; s/\/\.git//g' | sort)
+LOCAL_COUNT=$(echo "$LOCAL_REPOS" | grep -c '^' || echo 0)
+
+# Get GitHub repos
+echo "🐙 Fetching GitHub repos for $GITHUB_USER..."
+GITHUB_REPOS=$(gh repo list "$GITHUB_USER" --limit 200 --json name --jq '.[].name' | sort)
+GITHUB_COUNT=$(echo "$GITHUB_REPOS" | grep -c '^' || echo 0)
+
+echo -e "\n${GREEN}Local repos: $LOCAL_COUNT${NC}"
+echo -e "${GREEN}GitHub repos: $GITHUB_COUNT${NC}\n"
+
+# Find repos on GitHub but NOT local
+echo -e "${YELLOW}=== Missing Locally (on GitHub but not local) ===${NC}"
+MISSING_LOCAL=0
+while IFS= read -r repo; do
+  [ -z "$repo" ] && continue
+  if ! echo "$LOCAL_REPOS" | grep -q "^${repo}$"; then
+    echo -e "  ${RED}✗${NC} $repo ${BLUE}(git clone git@github.com:$GITHUB_USER/$repo.git)${NC}"
+    MISSING_LOCAL=$((MISSING_LOCAL + 1))
+  fi
+done <<< "$GITHUB_REPOS"
+
+if [ "$MISSING_LOCAL" -eq 0 ]; then
+  echo -e "  ${GREEN}✓ All GitHub repos are cloned locally${NC}"
+fi
+
+# Find repos local but NOT on GitHub
+echo -e "\n${YELLOW}=== Missing on GitHub (local but not on GitHub) ===${NC}"
+MISSING_GITHUB=0
+while IFS= read -r repo; do
+  [ -z "$repo" ] && continue
+
+  # Check if repo has a remote
+  REMOTE=$(cd "$CODE_DIR/$repo" && git remote get-url origin 2>/dev/null || echo "")
+
+  # Skip if remote is not nulljosh or no remote
+  if [[ "$REMOTE" != *"github.com/$GITHUB_USER"* ]] && [[ -n "$REMOTE" ]]; then
+    echo -e "  ${BLUE}⏭️  $repo${NC} (remote: $REMOTE)"
+    continue
+  fi
+
+  # Check if exists on GitHub
+  if ! echo "$GITHUB_REPOS" | grep -q "^${repo}$"; then
+    if [[ -z "$REMOTE" ]]; then
+      echo -e "  ${RED}✗${NC} $repo ${BLUE}(no remote - run: gh repo create $GITHUB_USER/$repo --public --source=$CODE_DIR/$repo)${NC}"
+    else
+      echo -e "  ${RED}✗${NC} $repo ${BLUE}(remote configured but repo doesn't exist)${NC}"
+    fi
+    MISSING_GITHUB=$((MISSING_GITHUB + 1))
+  fi
+done <<< "$LOCAL_REPOS"
+
+if [ "$MISSING_GITHUB" -eq 0 ]; then
+  echo -e "  ${GREEN}✓ All local repos exist on GitHub${NC}"
+fi
+
+# Summary
+echo -e "\n${BLUE}=== Summary ===${NC}"
+echo -e "Total local repos: ${GREEN}$LOCAL_COUNT${NC}"
+echo -e "Total GitHub repos: ${GREEN}$GITHUB_COUNT${NC}"
+echo -e "Missing locally: ${RED}$MISSING_LOCAL${NC}"
+echo -e "Missing on GitHub: ${RED}$MISSING_GITHUB${NC}"
+
+if [ "$MISSING_LOCAL" -eq 0 ] && [ "$MISSING_GITHUB" -eq 0 ]; then
+  echo -e "\n${GREEN}✓ Everything is synced!${NC}"
+  exit 0
+else
+  echo -e "\n${YELLOW}⚠️  Some repos are out of sync${NC}"
+  exit 1
+fi

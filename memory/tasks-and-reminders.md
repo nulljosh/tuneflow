@@ -1,13 +1,12 @@
 # Tasks & Reminders Tracker
 
-Last synced: 2026-02-08 09:02 PST
+Last synced: 2026-02-11 14:31 PST
 
-## Active Reminders (from Apple Reminders)
-
-### To Buy/Get
+## Buy
 - [x] AirPod Cover → ✅ Got AirPod tips (2026-02-09)
 - [ ] Nuphy keyboard
 - [ ] Logitech MX Master Mouse
+- [ ] Claude wrapper
 
 ### To Do
 - [x] Find glasses → ✅ Found them!

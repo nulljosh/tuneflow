@@ -1,0 +1,46 @@
+#!/bin/bash
+# Dominos Pizza CLI
+
+cd ~/Documents/Code/dominos
+
+case "$1" in
+  menu)
+    node list-menu.js
+    ;;
+  stores)
+    shift
+    LOCATION="${*:-20690 40 Ave, Langley, BC}"
+    echo "🍕 Finding Dominos near: $LOCATION"
+    node -e "
+      import('./dominos.js').then(({DominosAPI}) => {
+        const api = new DominosAPI();
+        api.stores.find('$LOCATION').then(stores => {
+          stores.slice(0,5).forEach(s => {
+            console.log(\`📍 Store #\${s.StoreID} - \${s.AddressDescription}\`);
+            console.log(\`   \${s.HoursDescription}\`);
+            console.log(\`   📞 \${s.Phone}\n\`);
+          });
+        }).catch(e => console.log('Error:', e.message));
+      });
+    "
+    ;;
+  track)
+    shift
+    PHONE="${1:-7788462726}"
+    echo "📦 Tracking orders for: $PHONE"
+    node -e "
+      import('./dominos.js').then(({DominosAPI}) => {
+        const api = new DominosAPI();
+        api.trackOrder('$PHONE', 'Phone', 'ca').then(order => {
+          console.log('Status:', order.OrderStatus);
+        }).catch(e => console.log('No active orders'));
+      });
+    "
+    ;;
+  *)
+    echo "🍕 Dominos commands:"
+    echo "  dominos menu         - Show menu for nearest store"
+    echo "  dominos stores       - Find nearby stores"
+    echo "  dominos track [phone]- Track order status"
+    ;;
+esac

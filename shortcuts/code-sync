@@ -1,0 +1,288 @@
+#!/usr/bin/env node
+
+/**
+ * Code Sync Daemon
+ * Background auto-sync for all git repos in ~/Documents/Code/
+ *
+ * Features:
+ * - Watches all repos simultaneously
+ * - Auto-commits with AI-generated messages (Claude Haiku)
+ * - Auto-pushes to GitHub
+ * - Periodic pull for remote updates
+ * - Debouncing to prevent commit spam
+ *
+ * Usage:
+ *   code-sync start   - Start daemon
+ *   code-sync stop    - Stop daemon
+ *   code-sync status  - Check if running
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync, exec } = require('child_process');
+
+const CODE_DIR = path.join(process.env.HOME, 'Documents', 'Code');
+const DEBOUNCE_MS = 30000; // 30 seconds after last change
+const CHECK_INTERVAL_MS = 3600000; // Pull from remote every hour
+const LOG_FILE = path.join(process.env.HOME, '.openclaw', 'logs', 'code-sync.log');
+
+// Logging helpers
+function log(message, level = 'INFO') {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] [${level}] ${message}`;
+  console.log(logMessage);
+  fs.appendFileSync(LOG_FILE, logMessage + '\n');
+}
+
+// Get list of all git repos
+function getGitRepos() {
+  if (!fs.existsSync(CODE_DIR)) {
+    log(`Code directory does not exist: ${CODE_DIR}`, 'ERROR');
+    return [];
+  }
+
+  const dirs = fs.readdirSync(CODE_DIR, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => path.join(CODE_DIR, d.name))
+    .filter(dir => fs.existsSync(path.join(dir, '.git')));
+
+  return dirs;
+}
+
+// Generate commit message using Claude API
+async function generateCommitMessage(repoPath) {
+  const repoName = path.basename(repoPath);
+
+  try {
+    // Get git diff and status
+    const diff = execSync('git diff HEAD', { cwd: repoPath, encoding: 'utf8', maxBuffer: 1024 * 1024 * 10 }).toString();
+    const status = execSync('git status --short', { cwd: repoPath, encoding: 'utf8' }).toString();
+
+    // If Anthropic SDK is not available, fall back to basic message
+    let Anthropic;
+    try {
+      Anthropic = require('@anthropic-ai/sdk');
+    } catch (e) {
+      log(`[@anthropic-ai/sdk not installed, using basic commit message]`, 'WARN');
+      return generateBasicCommitMessage(repoPath, status);
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      log(`[ANTHROPIC_API_KEY not set, using basic commit message]`, 'WARN');
+      return generateBasicCommitMessage(repoPath, status);
+    }
+
+    const anthropic = new Anthropic({ apiKey });
+
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 150,
+      messages: [{
+        role: 'user',
+        content: `Generate a concise git commit message (1 line, <50 chars) for these changes. Follow conventional commits format (feat:, fix:, docs:, etc.).\n\nStatus:\n${status}\n\nDiff (truncated):\n${diff.slice(0, 2000)}`
+      }]
+    });
+
+    const message = response.content[0].text.trim().replace(/^["']|["']$/g, '');
+    return message;
+  } catch (err) {
+    log(`[${repoName}] Error generating commit message: ${err.message}`, 'ERROR');
+    return generateBasicCommitMessage(repoPath, '');
+  }
+}
+
+// Fallback basic commit message generator
+function generateBasicCommitMessage(repoPath, status) {
+  const repoName = path.basename(repoPath);
+
+  // Simple categorization
+  if (status.includes('??')) return `feat: Add new files`;
+  if (status.includes('M ')) return `refactor: Update code`;
+  if (status.includes('D ')) return `chore: Remove files`;
+
+  return `chore: Auto-sync changes`;
+}
+
+// Check if repo has changes
+function hasChanges(repoPath) {
+  try {
+    execSync('git add -A', { cwd: repoPath, stdio: 'ignore' });
+    execSync('git diff-index --quiet HEAD', { cwd: repoPath, stdio: 'ignore' });
+    return false; // No changes
+  } catch (err) {
+    return true; // Has changes
+  }
+}
+
+// Commit and push changes for a repo
+async function syncRepo(repoPath) {
+  const repoName = path.basename(repoPath);
+
+  try {
+    // Check if there are changes
+    if (!hasChanges(repoPath)) {
+      return;
+    }
+
+    // Generate commit message
+    const commitMsg = await generateCommitMessage(repoPath);
+
+    // Add Co-Authored-By tag
+    const fullCommitMsg = `${commitMsg}\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`;
+
+    // Commit
+    execSync(`git commit -m "${commitMsg.replace(/"/g, '\\"')}\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"`, {
+      cwd: repoPath,
+      stdio: 'ignore'
+    });
+
+    log(`[${repoName}] Committed: ${commitMsg}`);
+
+    // Push to remote
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: repoPath, encoding: 'utf8' }).trim();
+    execSync(`git push origin ${branch}`, { cwd: repoPath, stdio: 'ignore' });
+
+    log(`[${repoName}] Pushed to GitHub`);
+
+  } catch (err) {
+    log(`[${repoName}] Error syncing: ${err.message}`, 'ERROR');
+  }
+}
+
+// Pull updates from remote
+function pullRepo(repoPath) {
+  const repoName = path.basename(repoPath);
+
+  try {
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: repoPath, encoding: 'utf8' }).trim();
+    execSync(`git pull --rebase origin ${branch}`, { cwd: repoPath, stdio: 'ignore' });
+    log(`[${repoName}] Pulled latest from remote`);
+  } catch (err) {
+    // Silent fail - likely no remote changes or conflicts
+  }
+}
+
+// Main daemon function
+async function startDaemon() {
+  const repos = getGitRepos();
+
+  if (repos.length === 0) {
+    log('No git repos found in ~/Documents/Code/', 'ERROR');
+    process.exit(1);
+  }
+
+  log(`Starting code-sync daemon...`);
+  log(`Watching ${repos.length} repos: ${repos.map(r => path.basename(r)).join(', ')}`);
+  log(`Debounce: ${DEBOUNCE_MS}ms | Pull interval: ${CHECK_INTERVAL_MS}ms`);
+
+  // File watching (using basic fs.watch instead of chokidar to reduce dependencies)
+  const pendingRepos = new Set();
+  const timers = new Map();
+
+  // Watch each repo
+  repos.forEach(repoPath => {
+    const repoName = path.basename(repoPath);
+
+    // Watch for file changes (recursive)
+    try {
+      const watcher = fs.watch(repoPath, { recursive: true }, (eventType, filename) => {
+        // Ignore .git, node_modules, etc.
+        if (!filename ||
+            filename.includes('.git') ||
+            filename.includes('node_modules') ||
+            filename.includes('venv') ||
+            filename.includes('__pycache__') ||
+            filename.includes('.DS_Store')) {
+          return;
+        }
+
+        // Debounce: clear existing timer and set new one
+        if (timers.has(repoPath)) {
+          clearTimeout(timers.get(repoPath));
+        }
+
+        timers.set(repoPath, setTimeout(async () => {
+          await syncRepo(repoPath);
+          pendingRepos.delete(repoPath);
+        }, DEBOUNCE_MS));
+
+        pendingRepos.add(repoPath);
+      });
+
+      log(`[${repoName}] Watching for changes`);
+    } catch (err) {
+      log(`[${repoName}] Error setting up watcher: ${err.message}`, 'ERROR');
+    }
+  });
+
+  // Periodic pull from remote
+  setInterval(() => {
+    log('Checking for remote updates...');
+    repos.forEach(pullRepo);
+  }, CHECK_INTERVAL_MS);
+
+  log('Daemon running. Press Ctrl+C to stop.');
+}
+
+// Stop daemon
+function stopDaemon() {
+  try {
+    execSync('pkill -f "node.*code-sync start"', { stdio: 'ignore' });
+    log('Daemon stopped');
+  } catch (err) {
+    log('No daemon running', 'WARN');
+  }
+}
+
+// Check daemon status
+function checkStatus() {
+  try {
+    const pid = execSync('pgrep -f "node.*code-sync start"', { encoding: 'utf8' }).trim();
+    if (pid) {
+      log(`Daemon is running (PID: ${pid})`);
+      console.log(`\nRecent logs:\n`);
+      execSync(`tail -20 ${LOG_FILE}`, { stdio: 'inherit' });
+    } else {
+      log('Daemon is not running');
+    }
+  } catch (err) {
+    log('Daemon is not running');
+  }
+}
+
+// CLI interface
+const command = process.argv[2];
+
+switch (command) {
+  case 'start':
+    startDaemon();
+    break;
+
+  case 'stop':
+    stopDaemon();
+    break;
+
+  case 'status':
+    checkStatus();
+    break;
+
+  default:
+    console.log(`Code Sync Daemon
+
+Usage:
+  code-sync start    - Start background sync daemon
+  code-sync stop     - Stop daemon
+  code-sync status   - Check daemon status
+
+Features:
+  ✓ Watches all repos in ~/Documents/Code/
+  ✓ Auto-commits with AI-generated messages
+  ✓ Auto-pushes to GitHub
+  ✓ Pulls remote updates every hour
+  ✓ 30-second debounce to prevent spam
+
+Logs: ~/.openclaw/logs/code-sync.log
+`);
+    process.exit(1);
+}

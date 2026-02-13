@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Check if node has Full Disk Access by trying to read Messages database
+NODE_PATH="/opt/homebrew/bin/node"
+MESSAGES_DB="$HOME/Library/Messages/chat.db"
+
+# Try to read the database
+if ! sqlite3 "$MESSAGES_DB" "SELECT 1 FROM message LIMIT 1;" >/dev/null 2>&1; then
+    echo "❌ CRITICAL: OpenClaw can't access Messages database"
+    echo "   → Open System Settings → Privacy & Security → Full Disk Access"
+    echo "   → Add: $NODE_PATH"
+    echo "   → Then run: openclaw gateway restart"
+    exit 1
+else
+    echo "✅ Full Disk Access: OK"
+    exit 0
+fi

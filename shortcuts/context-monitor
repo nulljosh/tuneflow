@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# OpenClaw Context Monitor - Token-aware session management
+# Tracks actual token usage and provides proactive warnings
+
+CONFIG_FILE="$HOME/.openclaw/workspace/context-monitor.json"
+SESSIONS_FILE="$HOME/.openclaw/agents/main/sessions/sessions.json"
+CONTEXT_SAVE_SCRIPT="$HOME/.openclaw/workspace/shortcuts/context-save"
+
+# Read config values
+get_config() {
+    jq -r ".$1" "$CONFIG_FILE" 2>/dev/null || echo "null"
+}
+
+# Update config values
+set_config() {
+    local key=$1
+    local value=$2
+    local tmp=$(mktemp)
+    jq ".$key = $value" "$CONFIG_FILE" > "$tmp" && mv "$tmp" "$CONFIG_FILE"
+}
+
+# Get current session token usage from sessions.json
+get_token_usage() {
+    # Extract main session token usage
+    jq -r '."agent:main:main" | .contextTokens // 200000' "$SESSIONS_FILE" 2>/dev/null || echo "200000"
+}
+
+# Calculate current token count (estimated from session messages)
+get_current_tokens() {
+    # OpenClaw doesn't expose current usage directly in sessions.json
+    # We need to query the gateway API or estimate from message count
+    # For now, use openclaw CLI to get status
+
+    # Try to get from openclaw status command
+    if command -v openclaw >/dev/null 2>&1; then
+        # Parse status output for token usage
+        # This is approximate - OpenClaw doesn't expose this easily
+        local status_output=$(openclaw status 2>/dev/null || echo "")
+
+        # If we can't get real data, estimate from sessions file size
+        # This is very rough but better than nothing
+        local session_size=$(stat -f%z "$SESSIONS_FILE" 2>/dev/null || echo "0")
+
+        # Very rough heuristic: 1KB of session data ≈ 300 tokens
+        # This is VERY approximate but gives us a ballpark
+        local estimated_tokens=$((session_size * 300 / 1024))
+
+        echo "$estimated_tokens"
+    else
+        echo "0"
+    fi
+}
+
+# Get usage percentage
+get_usage_percent() {
+    local current_tokens=$(get_current_tokens)
+    local context_tokens=$(get_token_usage)
+
+    if [ "$context_tokens" = "0" ]; then
+        echo "0"
+    else
+        echo "scale=2; ($current_tokens / $context_tokens) * 100" | bc
+    fi
+}
+
+# Send notification via iMessage
+send_notification() {
+    local message=$1
+    local recipient=$(get_config "notifications.recipient")
+    local enabled=$(get_config "notifications.warning")
+
+    if [ "$enabled" = "true" ] && [ "$recipient" != "null" ]; then
+        imsg send "$recipient" "$message" 2>/dev/null || true
+    fi
+}
+
+# Check if we've already sent this warning
+warning_sent() {
+    local threshold=$1
+    local session_id=$(jq -r '."agent:main:main".sessionId' "$SESSIONS_FILE" 2>/dev/null)
+    local last_warned=$(get_config "warningsSent.\"$session_id\".\"$threshold\"")
+
+    if [ "$last_warned" = "true" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Mark warning as sent
+mark_warning_sent() {
+    local threshold=$1
+    local session_id=$(jq -r '."agent:main:main".sessionId' "$SESSIONS_FILE" 2>/dev/null)
+    set_config "warningsSent.\"$session_id\".\"$threshold\"" "true"
+}
+
+# Reset warning flags for new session
+reset_warnings() {
+    set_config "warningsSent" "{}"
+}
+
+# Main check function
+check_usage() {
+    local enabled=$(get_config "enabled")
+    if [ "$enabled" != "true" ]; then
+        return
+    fi
+
+    local current_tokens=$(get_current_tokens)
+    local context_tokens=$(get_token_usage)
+    local usage_percent=$(get_usage_percent)
+    local usage_ratio=$(echo "scale=2; $usage_percent / 100" | bc)
+
+    local auto_compact=$(get_config "autoCompactAt")
+    local auto_save=$(get_config "autoSaveAt")
+    local auto_new=$(get_config "autoNewAt")
+
+    # Update last check time
+    set_config "lastCheck" "\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+
+    # Check thresholds
+    if [ "$(echo "$usage_ratio >= $auto_new" | bc)" = "1" ]; then
+        if ! warning_sent "95"; then
+            echo "CRITICAL: Context at 95% ($current_tokens/$context_tokens tokens)"
+            send_notification "🚨 OpenClaw context at 95% - auto-saving and clearing..."
+            mark_warning_sent "95"
+
+            # Trigger auto-save and new session
+            if [ -x "$CONTEXT_SAVE_SCRIPT" ]; then
+                "$CONTEXT_SAVE_SCRIPT" auto
+            fi
+        fi
+    elif [ "$(echo "$usage_ratio >= $auto_save" | bc)" = "1" ]; then
+        if ! warning_sent "90"; then
+            echo "WARNING: Context at 90% ($current_tokens/$context_tokens tokens)"
+            send_notification "⚠️ OpenClaw context at 90% - running low on space"
+            mark_warning_sent "90"
+        fi
+    elif [ "$(echo "$usage_ratio >= $auto_compact" | bc)" = "1" ]; then
+        if ! warning_sent "80"; then
+            echo "NOTICE: Context at 80% ($current_tokens/$context_tokens tokens)"
+            send_notification "ℹ️ OpenClaw context at 80% - consider /compact or /new soon"
+            mark_warning_sent "80"
+        fi
+    fi
+}
+
+# Show current status
+show_status() {
+    local current_tokens=$(get_current_tokens)
+    local context_tokens=$(get_token_usage)
+    local usage_percent=$(get_usage_percent)
+    local enabled=$(get_config "enabled")
+
+    echo "OpenClaw Context Monitor Status"
+    echo "================================"
+    echo "Enabled: $enabled"
+    echo "Current tokens: ~$current_tokens (estimated)"
+    echo "Max tokens: $context_tokens"
+    echo "Usage: ${usage_percent}%"
+    echo ""
+    echo "Thresholds:"
+    echo "  Compact: $(get_config 'autoCompactAt' | awk '{print $1*100}')%"
+    echo "  Save: $(get_config 'autoSaveAt' | awk '{print $1*100}')%"
+    echo "  Auto-new: $(get_config 'autoNewAt' | awk '{print $1*100}')%"
+    echo ""
+    echo "Last check: $(get_config 'lastCheck')"
+}
+
+# Test warning system
+test_warning() {
+    local level=${1:-80}
+    echo "Testing ${level}% warning..."
+    send_notification "🧪 Test: OpenClaw context at ${level}% (this is a test)"
+}
+
+# Main command dispatcher
+case "${1:-check}" in
+    check)
+        check_usage
+        ;;
+    status)
+        show_status
+        ;;
+    test-warning)
+        test_warning "${2:-80}"
+        ;;
+    reset)
+        reset_warnings
+        echo "Warning flags reset"
+        ;;
+    *)
+        echo "Usage: context-monitor {check|status|test-warning|reset}"
+        exit 1
+        ;;
+esac

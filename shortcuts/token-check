@@ -1,0 +1,63 @@
+#!/bin/bash
+# Token usage monitor with threshold alerts
+
+# Get current usage from openclaw status
+usage_json=$(openclaw status --json 2>/dev/null)
+
+if [ -z "$usage_json" ]; then
+    echo "❌ Could not fetch token usage"
+    exit 1
+fi
+
+# Extract token counts (this assumes JSON output structure)
+# You may need to adjust based on actual openclaw status output
+current_tokens=$(echo "$usage_json" | jq -r '.usage.tokens // 0' 2>/dev/null || echo "0")
+daily_limit=200000
+
+# Calculate percentage
+if [ "$daily_limit" -gt 0 ]; then
+    percentage=$((current_tokens * 100 / daily_limit))
+else
+    percentage=0
+fi
+
+# Color codes
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Determine status
+if [ $percentage -ge 90 ]; then
+    color=$RED
+    status="🚨 CRITICAL"
+    message="Token usage critical! Consider killing cron jobs."
+elif [ $percentage -ge 75 ]; then
+    color=$YELLOW
+    status="⚠️  WARNING"
+    message="High token usage. Monitor closely."
+elif [ $percentage -ge 50 ]; then
+    color=$YELLOW
+    status="📊 MODERATE"
+    message="Normal usage, halfway to limit."
+else
+    color=$GREEN
+    status="✅ GOOD"
+    message="Token usage is healthy."
+fi
+
+# Display results
+echo -e "${color}${status}${NC}"
+echo "Tokens used: $(printf "%'d" $current_tokens) / $(printf "%'d" $daily_limit) (${percentage}%)"
+echo "$message"
+echo ""
+echo "Reset time: 3:00 PM PST daily"
+
+# If critical, show top token burners
+if [ $percentage -ge 75 ]; then
+    echo ""
+    echo "💡 Quick actions to reduce usage:"
+    echo "  • Check active cron jobs: openclaw cron list"
+    echo "  • List sessions: openclaw sessions list"
+    echo "  • Clear old sessions manually"
+fi

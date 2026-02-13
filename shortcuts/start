@@ -1,0 +1,232 @@
+#!/bin/bash
+
+################################################################################
+# start: Smart dev server launcher
+#
+# Usage:
+#   start              - Auto-detect project in current dir
+#   start bread        - Start specific project by name
+#   start --list       - List all available projects
+#
+# Auto-detects project type and runs appropriate dev command:
+#   - Node.js: npm run dev / npm start
+#   - Python: python -m venv + source venv/bin/activate
+#   - Rust: cargo run
+#   - Go: go run .
+#   - Makefile: make run
+################################################################################
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+CODE_DIR=~/Documents/Code
+
+################################################################################
+# Project-specific configs
+################################################################################
+
+# Custom commands for specific projects (override auto-detection)
+declare -A PROJECT_COMMANDS=(
+    ["bread"]="npm run dev"
+    ["checkcheck"]="npm start"
+    ["callie"]="node index.js"
+    ["shannon"]="./shannon start"
+    ["finn"]="npm start"
+    ["nullC"]="make && ./nullc"
+    ["NullOS"]="make run"
+)
+
+# Browser URLs for web projects
+declare -A PROJECT_URLS=(
+    ["bread"]="http://localhost:5173"
+    ["checkcheck"]="http://localhost:3000"
+    ["finn"]="http://localhost:3000"
+)
+
+################################################################################
+# Detection & execution
+################################################################################
+
+detect_and_start() {
+    local project_dir="$1"
+    local project_name=$(basename "$project_dir")
+
+    # Check for custom command first
+    if [[ -n "${PROJECT_COMMANDS[$project_name]}" ]]; then
+        echo -e "${GREEN}🚀 Starting $project_name${NC}"
+        echo -e "${BLUE}Running: ${PROJECT_COMMANDS[$project_name]}${NC}"
+
+        # Open browser if URL configured
+        if [[ -n "${PROJECT_URLS[$project_name]}" ]]; then
+            sleep 2 && open "${PROJECT_URLS[$project_name]}" &
+        fi
+
+        cd "$project_dir" && eval "${PROJECT_COMMANDS[$project_name]}"
+        return $?
+    fi
+
+    # Auto-detect Node.js
+    if [[ -f "$project_dir/package.json" ]]; then
+        echo -e "${GREEN}🚀 Starting Node.js project: $project_name${NC}"
+
+        # Check for dev script
+        if grep -q '"dev"' "$project_dir/package.json"; then
+            echo -e "${BLUE}Running: npm run dev${NC}"
+            cd "$project_dir" && npm run dev
+        elif grep -q '"start"' "$project_dir/package.json"; then
+            echo -e "${BLUE}Running: npm start${NC}"
+            cd "$project_dir" && npm start
+        else
+            echo -e "${YELLOW}No 'dev' or 'start' script found in package.json${NC}"
+            return 1
+        fi
+        return $?
+    fi
+
+    # Auto-detect Python
+    if [[ -f "$project_dir/main.py" || -f "$project_dir/app.py" || -f "$project_dir/requirements.txt" ]]; then
+        echo -e "${GREEN}🐍 Starting Python project: $project_name${NC}"
+
+        # Activate venv if exists
+        if [[ -d "$project_dir/venv" ]]; then
+            echo -e "${BLUE}Activating virtual environment${NC}"
+            source "$project_dir/venv/bin/activate"
+        fi
+
+        # Run main.py or app.py
+        if [[ -f "$project_dir/main.py" ]]; then
+            echo -e "${BLUE}Running: python main.py${NC}"
+            cd "$project_dir" && python main.py
+        elif [[ -f "$project_dir/app.py" ]]; then
+            echo -e "${BLUE}Running: python app.py${NC}"
+            cd "$project_dir" && python app.py
+        else
+            echo -e "${YELLOW}No main.py or app.py found${NC}"
+            return 1
+        fi
+        return $?
+    fi
+
+    # Auto-detect Rust
+    if [[ -f "$project_dir/Cargo.toml" ]]; then
+        echo -e "${GREEN}🦀 Starting Rust project: $project_name${NC}"
+        echo -e "${BLUE}Running: cargo run${NC}"
+        cd "$project_dir" && cargo run
+        return $?
+    fi
+
+    # Auto-detect Go
+    if [[ -f "$project_dir/go.mod" ]]; then
+        echo -e "${GREEN}🐹 Starting Go project: $project_name${NC}"
+        echo -e "${BLUE}Running: go run .${NC}"
+        cd "$project_dir" && go run .
+        return $?
+    fi
+
+    # Auto-detect Makefile with 'run' target
+    if [[ -f "$project_dir/Makefile" ]]; then
+        if grep -q "^run:" "$project_dir/Makefile"; then
+            echo -e "${GREEN}🔧 Starting Makefile project: $project_name${NC}"
+            echo -e "${BLUE}Running: make run${NC}"
+            cd "$project_dir" && make run
+            return $?
+        fi
+    fi
+
+    # No dev server detected
+    echo -e "${RED}❌ No dev server detected for $project_name${NC}"
+    echo -e "${YELLOW}Add a custom command in the script or configure package.json${NC}"
+    return 1
+}
+
+################################################################################
+# List all projects
+################################################################################
+
+list_projects() {
+    echo -e "${CYAN}Available projects:${NC}\n"
+
+    # Projects with custom commands
+    echo -e "${GREEN}Configured projects:${NC}"
+    for project in "${!PROJECT_COMMANDS[@]}"; do
+        if [[ -d "$CODE_DIR/$project" ]]; then
+            echo -e "  ${BLUE}$project${NC} → ${PROJECT_COMMANDS[$project]}"
+        fi
+    done
+
+    echo ""
+
+    # Auto-detected projects
+    echo -e "${GREEN}Auto-detected projects:${NC}"
+    for dir in "$CODE_DIR"/*; do
+        if [[ -d "$dir" ]]; then
+            project=$(basename "$dir")
+
+            # Skip if already has custom command
+            [[ -n "${PROJECT_COMMANDS[$project]}" ]] && continue
+
+            # Detect type
+            if [[ -f "$dir/package.json" ]]; then
+                echo -e "  ${BLUE}$project${NC} → Node.js (npm run dev)"
+            elif [[ -f "$dir/Cargo.toml" ]]; then
+                echo -e "  ${BLUE}$project${NC} → Rust (cargo run)"
+            elif [[ -f "$dir/go.mod" ]]; then
+                echo -e "  ${BLUE}$project${NC} → Go (go run .)"
+            elif [[ -f "$dir/main.py" || -f "$dir/app.py" ]]; then
+                echo -e "  ${BLUE}$project${NC} → Python (python main.py)"
+            fi
+        fi
+    done
+}
+
+################################################################################
+# Main logic
+################################################################################
+
+# Parse arguments
+if [[ "$1" == "--list" || "$1" == "-l" ]]; then
+    list_projects
+    exit 0
+fi
+
+# If project name provided, use that
+if [[ -n "$1" ]]; then
+    PROJECT_NAME="$1"
+    PROJECT_DIR="$CODE_DIR/$PROJECT_NAME"
+
+    if [[ ! -d "$PROJECT_DIR" ]]; then
+        echo -e "${RED}❌ Project not found: $PROJECT_NAME${NC}"
+        echo -e "${YELLOW}Available projects in $CODE_DIR:${NC}"
+        ls -1 "$CODE_DIR" | grep -v '^\.' | sed 's/^/  /'
+        exit 1
+    fi
+else
+    # Auto-detect from current directory
+    if [[ "$PWD" == "$CODE_DIR"* ]]; then
+        # We're inside Code dir, use current project
+        PROJECT_DIR="$PWD"
+
+        # If we're in a subdirectory, walk up to find the project root
+        while [[ "$PROJECT_DIR" != "$CODE_DIR" && ! -f "$PROJECT_DIR/package.json" && ! -f "$PROJECT_DIR/Cargo.toml" && ! -f "$PROJECT_DIR/go.mod" ]]; do
+            PROJECT_DIR=$(dirname "$PROJECT_DIR")
+        done
+
+        if [[ "$PROJECT_DIR" == "$CODE_DIR" ]]; then
+            echo -e "${RED}❌ Not in a project directory${NC}"
+            echo -e "${YELLOW}Usage: start [project-name]${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}❌ Not in ~/Documents/Code/ directory${NC}"
+        echo -e "${YELLOW}Usage: start [project-name]${NC}"
+        exit 1
+    fi
+fi
+
+# Start the project
+detect_and_start "$PROJECT_DIR"

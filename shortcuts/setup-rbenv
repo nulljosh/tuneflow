@@ -1,0 +1,31 @@
+#!/bin/bash
+# rbenv setup - avoids permission issues by using user-space install
+
+set -e
+
+echo "Installing rbenv via Homebrew (user space)..."
+brew install rbenv ruby-build
+
+echo "Adding rbenv to shell..."
+if ! grep -q 'rbenv init' ~/.zshrc 2>/dev/null; then
+    echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc
+fi
+
+echo "Reloading shell config..."
+eval "$(rbenv init - zsh)"
+
+echo "Installing Ruby 3.3.0..."
+rbenv install 3.3.0 --skip-existing
+
+echo "Setting Ruby 3.3.0 as global default..."
+rbenv global 3.3.0
+
+echo "Verifying installation..."
+ruby -v
+which ruby
+gem -v
+
+echo ""
+echo "✅ rbenv setup complete!"
+echo "Ruby location: $(which ruby)"
+echo "Ruby version: $(ruby -v)"

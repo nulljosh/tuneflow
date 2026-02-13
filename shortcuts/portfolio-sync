@@ -1,0 +1,279 @@
+#!/usr/bin/env node
+
+/**
+ * Portfolio Sync Daemon
+ * Watches ~/Documents/Code/ and auto-updates nulljosh.github.io with cool projects
+ *
+ * Features:
+ * - Scans all git repos in Code/
+ * - Filters for substantial/interesting projects
+ * - Updates portfolio HTML with new projects
+ * - Auto-commits and pushes to GitHub
+ *
+ * Usage:
+ *   portfolio-sync scan   - Scan and update portfolio
+ *   portfolio-sync list   - List current portfolio projects
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const CODE_DIR = path.join(process.env.HOME, 'Documents', 'Code');
+const PORTFOLIO_DIR = path.join(CODE_DIR, 'nulljosh.github.io');
+const PORTFOLIO_HTML = path.join(PORTFOLIO_DIR, 'index.html');
+
+// Projects to exclude (reference, static, scaffolds)
+const EXCLUDED = new Set([
+  'nulljosh.github.io', 'portfolio', 'school', 'journal', 'books',
+  'bcgd', 'dominos', 'wikiscroll', 'arby', 'mac-automation-services',
+  'api-gateway', 'container-runtime', 'crypto', 'databases',
+  'graphics-renderer', 'graphics', 'query-language', 'networking',
+  'profiler', 'systems', 'tools'
+]);
+
+// Get all git repos in Code/
+function getGitRepos() {
+  if (!fs.existsSync(CODE_DIR)) {
+    console.error(`Code directory not found: ${CODE_DIR}`);
+    return [];
+  }
+
+  return fs.readdirSync(CODE_DIR, { withFileTypes: true })
+    .filter(d => d.isDirectory() && !EXCLUDED.has(d.name))
+    .map(d => ({
+      name: d.name,
+      path: path.join(CODE_DIR, d.name)
+    }))
+    .filter(repo => fs.existsSync(path.join(repo.path, '.git')));
+}
+
+// Get project metadata (commits, README, description)
+function getProjectMetadata(repoPath) {
+  try {
+    // Commit count (last 90 days)
+    const commitCount = parseInt(
+      execSync('git rev-list --count --since="90 days ago" HEAD', {
+        cwd: repoPath,
+        encoding: 'utf8'
+      }).trim()
+    );
+
+    // Total LOC (exclude node_modules, venv, .git)
+    let loc = 0;
+    try {
+      const locOutput = execSync(
+        'find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.c" -o -name "*.cpp" -o -name "*.rs" -o -name "*.go" -o -name "*.html" \\) ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/venv/*" | xargs wc -l 2>/dev/null | tail -1',
+        { cwd: repoPath, encoding: 'utf8' }
+      );
+      loc = parseInt(locOutput.trim().split(/\s+/)[0]) || 0;
+    } catch (e) {
+      // No matching files
+    }
+
+    // README exists?
+    const hasReadme = fs.existsSync(path.join(repoPath, 'README.md'));
+
+    // Get description from README if available
+    let description = '';
+    if (hasReadme) {
+      const readme = fs.readFileSync(path.join(repoPath, 'README.md'), 'utf8');
+      // Extract first paragraph after title
+      const match = readme.match(/^#[^\n]+\n+([^\n]+)/);
+      if (match) {
+        description = match[1].trim();
+      }
+    }
+
+    // Get GitHub URL
+    let githubUrl = '';
+    try {
+      const remoteUrl = execSync('git remote get-url origin', {
+        cwd: repoPath,
+        encoding: 'utf8'
+      }).trim();
+
+      if (remoteUrl.includes('github.com')) {
+        githubUrl = remoteUrl
+          .replace('git@github.com:', 'https://github.com/')
+          .replace(/\.git$/, '');
+      }
+    } catch (e) {
+      // No remote
+    }
+
+    return {
+      commitCount,
+      loc,
+      hasReadme,
+      description,
+      githubUrl
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+// Determine if project is "cool" (worth adding to portfolio)
+function isCoolProject(metadata) {
+  if (!metadata) return false;
+
+  // At least 10 commits in last 90 days OR substantial codebase
+  return (metadata.commitCount >= 10 || metadata.loc >= 500) && metadata.hasReadme;
+}
+
+// Scan Code/ and find cool projects
+function scanProjects() {
+  const repos = getGitRepos();
+  const coolProjects = [];
+
+  console.log(`Scanning ${repos.length} repos...\n`);
+
+  for (const repo of repos) {
+    const metadata = getProjectMetadata(repo.path);
+
+    if (isCoolProject(metadata)) {
+      coolProjects.push({
+        name: repo.name,
+        ...metadata
+      });
+
+      console.log(`✓ ${repo.name}`);
+      console.log(`  Commits (90d): ${metadata.commitCount}`);
+      console.log(`  LOC: ${metadata.loc}`);
+      console.log(`  URL: ${metadata.githubUrl || 'No remote'}`);
+      console.log();
+    }
+  }
+
+  return coolProjects;
+}
+
+// Update portfolio HTML with new projects
+function updatePortfolio(projects) {
+  if (!fs.existsSync(PORTFOLIO_HTML)) {
+    console.error('Portfolio HTML not found');
+    return false;
+  }
+
+  let html = fs.readFileSync(PORTFOLIO_HTML, 'utf8');
+
+  // Find existing projects section
+  const projectsStart = html.indexOf('<h2 class="section-title">Projects</h2>');
+  const projectsEnd = html.indexOf('</section>', projectsStart);
+
+  if (projectsStart === -1 || projectsEnd === -1) {
+    console.error('Could not find Projects section in HTML');
+    return false;
+  }
+
+  // Generate new project cards HTML
+  const projectCards = projects
+    .slice(0, 6) // Top 6 projects only
+    .map(p => {
+      const url = p.githubUrl || `https://github.com/nulljosh/${p.name}`;
+      return `                <div class="job-card">
+                    <div class="job-title"><a href="${url}" target="_blank" rel="noopener noreferrer">${p.name}</a></div>
+                    <div class="company-date">2026</div>
+                    <ul>
+                        <li>${p.description || `${p.loc.toLocaleString()} LOC, ${p.commitCount} commits (90d)`}</li>
+                    </ul>
+                </div>`;
+    })
+    .join('\n\n');
+
+  // Replace projects section
+  const newProjectsSection = `            <h2 class="section-title">Projects</h2>
+            <div class="experience-grid">
+${projectCards}
+            </div>`;
+
+  const before = html.substring(0, projectsStart);
+  const after = html.substring(projectsEnd);
+
+  const newHtml = before + newProjectsSection + after;
+
+  // Write updated HTML
+  fs.writeFileSync(PORTFOLIO_HTML, newHtml, 'utf8');
+
+  console.log(`\n✓ Updated portfolio with ${projects.slice(0, 6).length} projects`);
+  return true;
+}
+
+// Commit and push portfolio changes
+function commitAndPush() {
+  try {
+    // Check if there are changes
+    execSync('git add index.html', { cwd: PORTFOLIO_DIR, stdio: 'ignore' });
+
+    try {
+      execSync('git diff-index --quiet HEAD', { cwd: PORTFOLIO_DIR, stdio: 'ignore' });
+      console.log('No changes to commit');
+      return;
+    } catch (e) {
+      // Has changes, continue
+    }
+
+    // Commit
+    execSync(
+      'git commit -m "chore: Auto-update portfolio projects\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"',
+      { cwd: PORTFOLIO_DIR, stdio: 'ignore' }
+    );
+
+    console.log('✓ Committed changes');
+
+    // Push
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+      cwd: PORTFOLIO_DIR,
+      encoding: 'utf8'
+    }).trim();
+
+    execSync(`git push origin ${branch}`, { cwd: PORTFOLIO_DIR, stdio: 'ignore' });
+
+    console.log('✓ Pushed to GitHub');
+  } catch (err) {
+    console.error(`Error committing: ${err.message}`);
+  }
+}
+
+// CLI
+const command = process.argv[2];
+
+switch (command) {
+  case 'scan':
+    const projects = scanProjects();
+
+    if (projects.length === 0) {
+      console.log('No cool projects found');
+      process.exit(0);
+    }
+
+    if (updatePortfolio(projects)) {
+      commitAndPush();
+    }
+    break;
+
+  case 'list':
+    const allProjects = scanProjects();
+    console.log(`\nFound ${allProjects.length} cool projects:`);
+    allProjects.forEach(p => {
+      console.log(`  - ${p.name} (${p.loc} LOC, ${p.commitCount} commits)`);
+    });
+    break;
+
+  default:
+    console.log(`Portfolio Sync
+
+Usage:
+  portfolio-sync scan   - Scan Code/ and update portfolio
+  portfolio-sync list   - List cool projects
+
+Cool project criteria:
+  - 10+ commits in last 90 days OR 500+ LOC
+  - Has README.md
+  - Not in excluded list
+
+Excluded: scaffolds, static sites, reference repos
+`);
+    process.exit(1);
+}
