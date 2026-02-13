@@ -39,17 +39,14 @@ scripts/dj stop
 
 ### Project Structure
 
-- **`scripts/`** - Music control scripts (music, dj, analyze_header.py)
-- **`shortcuts/`** - Automation shortcuts and enhanced auto-dj
-- **`generators/`** - 80s graphics generators (HTML/JS/Python + images)
-- **`zkml/`** - ZKML analysis tools
-- **`config/`** - Configuration files (.env.kimi, context-monitor.json)
-- **`docs/`** - Documentation and guides
+- **`scripts/`** - Music control (music, dj)
+- **`shortcuts/`** - Automation shortcuts
 - **`skills/`** - Custom skills
-- **`lists/`** - Music and content lists
-- **`memory/`** - Agent memory storage
+- **`docs/`** - Documentation
+- **`lists/`** - Media lists
+- **`memory/`** - Agent memory
 - **`logs/`** - Session logs
-- **`archive/`** - Archived files
+- **`archive/`** - Old projects
 
 ### Main Scripts
 
@@ -81,10 +78,22 @@ scripts/dj stop
 - Creates "Auto Mix HH:MM" playlists every 10 songs
 - Learns from loved tracks and ratings
 
+## Build Framework
+
+5-phase workflow for building apps:
+
+1. **Discovery** - Understand requirements, challenge assumptions, prioritize
+2. **Planning** - Propose v1, explain technical approach, estimate complexity
+3. **Building** - Build iteratively, explain decisions, test and check in
+4. **Polish** - Professional touches, edge cases, finishing details
+5. **Handoff** - Deploy, document, clear instructions
+
+**Rules:** User is product owner. Build real, not mockups. No jargon. Push back when needed. Be honest about limitations.
+
 ## Contact
 
-**Email:** jatrommel@gmail.com  
-**Portfolio:** [heyitsmejosh.com](https://heyitsmejosh.com)  
+**Email:** jatrommel@gmail.com
+**Portfolio:** [heyitsmejosh.com](https://heyitsmejosh.com)
 **GitHub:** [@nulljosh](https://github.com/nulljosh)
 
 ---
