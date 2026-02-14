@@ -2,6 +2,7 @@
 
 Advanced Apple Music automation system with intelligent AI-powered features.
 
+![Architecture](architecture.svg)
 
 ## Live Site
 
